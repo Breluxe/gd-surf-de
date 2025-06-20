@@ -1,11 +1,484 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ISurf</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #00213d 0%, #23272f 100%);
+      color: #bfc9d1;
+      box-sizing: border-box;
+      height: 100%;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+    }
+    .sidebar {
+      width: 260px;
+      background: #282828;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      box-shadow: none;
+      padding: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      border: none;
+    }
+    .sidebar-separator {
+      position: fixed;
+      left: 260px;
+      top: 0;
+      height: 100vh;
+      width: 1px;
+      background: #e0e0e0;
+      opacity: 0.7;
+      z-index: 110;
+    }
+    .main-content {
+      margin-left: 260px;
+      flex: 1;
+      background: transparent;
+      min-height: 100vh;
+      padding: 32px 32px 32px 32px;
+      display: flex;
+      flex-direction: row;
+      gap: 24px;
+    }
+    .main-section {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .main-row {
+      display: flex;
+      flex-direction: row;
+      gap: 18px;
+    }
+    .tab-box {
+      background: #181c22;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 0;
+      margin-bottom: 0;
+      border: 1.5px solid #393939;
+      min-width: 320px;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+    }
+    .tab-header {
+      display: flex;
+      align-items: center;
+      border-radius: 8px 8px 0 0;
+      padding: 10px 18px;
+      font-size: 1.08rem;
+      font-weight: 600;
+      color: #fff;
+      border-bottom: 1.5px solid #393939;
+    }
+    .tab-header .emoji {
+      margin-right: 10px;
+      font-size: 1.2rem;
+    }
+    .tab-content {
+      padding: 18px;
+      color: #bfc9d1;
+      font-size: 1rem;
+      min-height: 30px;
+    }
+    /* Farbanpassungen für die Tabs */
+    .tab-box.speicherplatz {
+      border-color: #b8860b;
+    }
+    .tab-box.speicherplatz .tab-header {
+      background: #2d2300;
+      color: #ffd700;
+      border-bottom: 1.5px solid #b8860b;
+    }
+    .tab-box.email, .tab-box.aufgaben, .tab-box.news {
+      border-color: #003366;
+    }
+    .tab-box.email .tab-header,
+    .tab-box.aufgaben .tab-header,
+    .tab-box.news .tab-header {
+      background: #003366;
+      color: #fff;
+      border-bottom: 1.5px solid #003366;
+    }
+    .tab-box.login, .tab-box.stundenplan {
+      border-color: #393939;
+    }
+    .tab-box.login .tab-header,
+    .tab-box.stundenplan .tab-header {
+      background: #232b36;
+      color: #fff;
+      border-bottom: 1.5px solid #393939;
+    }
+    .side-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-width: 320px;
+    }
+    @media (max-width: 900px) {
+      .main-content { flex-direction: column; margin-left: 0; padding: 16px; }
+      .main-section, .side-section { min-width: 0; }
+      .sidebar { position: static; width: 100vw; height: auto; }
+      .sidebar-separator { display: none; }
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      background: #282828;
+      color: #bfc9d1;
+      box-sizing: border-box;
+      height: 100%;
+    }
+    body {
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: 260px;
+      background: #282828;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      box-shadow: none;
+      padding: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      border: none;
+    }
+    .iserv-logo {
+      margin: 32px auto 0 auto;
+      display: block;
+      width: 110px;
+      height: 38px;
+      background: url('data:image/svg+xml;utf8,<svg width="110" height="38" viewBox="0 0 110 38" fill="none" xmlns="http://www.w3.org/2000/svg"><text x="0" y="30" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="white">!Surf</text></svg>') no-repeat center/contain;
+    }
+    .school-title {
+      text-align: center;
+      color: #bfc9d1;
+      font-size: 1rem;
+      margin-top: 4px;
+      margin-bottom: 18px;
+      letter-spacing: 0.01em;
+    }
+    .user-box {
+      display: flex;
+      align-items: center;
+      background: #232323;
+      border-radius: 6px;
+      margin: 0 16px 10px 16px;
+      padding: 6px 10px;
+      height: 40px;
+    }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      background: #bfc9d1;
+      margin-right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+    .user-name {
+      flex: 1;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .user-dropdown {
+      color: #bfc9d1;
+      font-size: 1rem;
+      margin-left: 6px;
+      cursor: pointer;
+    }
+    .search-box {
+      margin: 0 16px 18px 16px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 5px;
+      border: 1px solid #444;
+      background: #232323;
+      color: #bfc9d1;
+      font-size: 1rem;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .nav-divider {
+      margin: 18px 0 0 0;
+      padding: 0 16px 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #bfc9d1;
+      font-size: 0.98rem;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+    .nav-divider .edit-icon {
+      font-size: 1.1rem;
+      color: #bfc9d1;
+      opacity: 0.7;
+      cursor: pointer;
+      margin-left: 4px;
+    }
+    .nav-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 0.55rem 16px;
+      border-radius: 7px;
+      margin: 0 8px 2px 8px;
+      cursor: pointer;
+      transition: background 0.18s;
+      color: #bfc9d1;
+      font-size: 1rem;
+      font-weight: 400;
+      text-decoration: none;
+      border: none;
+      background: transparent;
+    }
+    .nav-item:hover {
+      background: #232323;
+      color: #fff;
+    }
+    .nav-item .emoji {
+      font-size: 1.25rem;
+      margin-right: 0.9rem;
+      width: 1.7em;
+      text-align: center;
+      display: inline-block;
+    }
+    .nav-item .item-label {
+      flex: 1;
+      color: inherit;
+      font-size: 1rem;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+    }
+    .nav-separator {
+      border: none;
+      border-top: 1px solid #393939;
+      margin: 14px 16px 10px 16px;
+    }
+    .all-modules-row {
+      display: flex;
+      align-items: center;
+      padding: 0.7rem 16px 0.7rem 16px;
+      color: #bfc9d1;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 7px;
+      margin: 0 8px;
+      transition: background 0.18s;
+      position: relative;
+    }
+    .all-modules-row:hover {
+      background: #232323;
+      color: #fff;
+    }
+    .all-modules-row .badge {
+      background: #e07a53;
+      color: #fff;
+      border-radius: 50%;
+      width: 10px;
+      height: 10px;
+      display: inline-block;
+      margin: 0 8px 0 8px;
+      vertical-align: middle;
+    }
+    .all-modules-row .arrow {
+      margin-left: auto;
+      color: #bfc9d1;
+      font-size: 1.1rem;
+    }
+    .all-modules-list {
+      display: none;
+      flex-direction: column;
+      margin: 0 0 0 0;
+      padding: 0 0 0 0;
+      background: #232323;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .all-modules-list.open {
+      display: flex;
+    }
+    .all-modules-list .nav-item {
+      margin: 0 8px 2px 24px;
+      background: transparent;
+    }
+    .impressum {
+      margin-top: auto;
+      text-align: center;
+      color: #bfc9d1;
+      font-size: 1rem;
+      padding-bottom: 32px;
+      letter-spacing: 0.01em;
+      opacity: 0.8;
+    }
+    .news-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffd700;
+      margin-bottom: 6px;
+      letter-spacing: 0.01em;
+    }
+    .news-date {
+      font-size: 0.95rem;
+      color: #bfc9d1;
+      opacity: 0.8;
+      margin-bottom: 10px;
+    }
+    .news-body {
+      font-size: 1.04rem;
+      color: #fff;
+      margin-bottom: 0;
+      line-height: 1.6;
+    }
+    .news-highlight {
+      color: #7bb1ff;
+      font-weight: 600;
+    }
+  </style>
 </head>
 <body>
-    Hier gehts ab
+  <div class="sidebar">
+    <div class="iserv-logo"></div>
+    <div class="school-title"></div>
+    <div class="user-box">
+      <div class="user-avatar">🧑‍🎓</div>
+      <div class="user-name">Max Mustermann</div>
+      <div class="user-dropdown">▼</div>
+    </div>
+    <div class="search-box">
+      <input class="search-input" type="text" placeholder="Module filtern..." />
+    </div>
+    <div class="nav-divider">
+      <span>Schnellzugriff</span>
+      <span class="edit-icon" title="Schnellzugriff bearbeiten">✏️</span>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item"><span class="emoji">🎥</span><span class="item-label">Videokonferenzen</span></li>
+      <li class="nav-item"><span class="emoji">💬</span><span class="item-label">Messenger</span></li>
+      <li class="nav-item"><span class="emoji">📝</span><span class="item-label">Aufgaben</span></li>
+    </ul>
+    <hr class="nav-separator" />
+    <ul class="nav-list">
+      <li class="nav-item"><span class="emoji">🦉</span><span class="item-label">Eduplaces</span></li>
+    </ul>
+    <hr class="nav-separator" />
+    <div class="all-modules-row" id="all-modules-toggle">
+      <span>Alle Module</span>
+      <span class="badge"></span>
+      <span class="arrow">&#8250;</span>
+    </div>
+    <div class="all-modules-list" id="all-modules-list">
+      <div class="nav-item"><span class="emoji">📒</span><span class="item-label">Adressbuch</span></div>
+      <div class="nav-item"><span class="emoji">📚</span><span class="item-label">Bücherei</span></div>
+      <div class="nav-item"><span class="emoji">📁</span><span class="item-label">Dateien</span></div>
+      <div class="nav-item"><span class="emoji">🖨️</span><span class="item-label">Drucken</span></div>
+      <div class="nav-item"><span class="emoji">✉️</span><span class="item-label">E-Mail</span></div>
+      <div class="nav-item"><span class="emoji">🗂️</span><span class="item-label">Edupool</span></div>
+      <div class="nav-item"><span class="emoji">💬</span><span class="item-label">Foren</span></div>
+      <div class="nav-item"><span class="emoji">👥</span><span class="item-label">Gruppenansicht</span></div>
+      <div class="nav-item"><span class="emoji">🖥️</span><span class="item-label">Infobildschirm</span></div>
+      <div class="nav-item"><span class="emoji">❓</span><span class="item-label">IServ-Hilfe</span></div>
+      <div class="nav-item"><span class="emoji">📅</span><span class="item-label">Kalender</span></div>
+      <div class="nav-item"><span class="emoji">🗳️</span><span class="item-label">Kurswahlen</span></div>
+      <div class="nav-item"><span class="emoji">🏠</span><span class="item-label">moin.schule</span></div>
+      <div class="nav-item"><span class="emoji">☁️</span><span class="item-label">NBC</span></div>
+      <div class="nav-item"><span class="emoji">📰</span><span class="item-label">News</span></div>
+      <div class="nav-item"><span class="emoji">📄</span><span class="item-label">Office</span></div>
+      <div class="nav-item"><span class="emoji">📋</span><span class="item-label">Pläne</span></div>
+      <div class="nav-item"><span class="emoji">📕</span><span class="item-label">Schulbücher</span></div>
+      <div class="nav-item"><span class="emoji">📆</span><span class="item-label">Stundenplan</span></div>
+      <div class="nav-item"><span class="emoji">🖊️</span><span class="item-label">Tafeln</span></div>
+      <div class="nav-item"><span class="emoji">📝</span><span class="item-label">Texte</span></div>
+      <div class="nav-item"><span class="emoji">📊</span><span class="item-label">Umfragen</span></div>
+      <div class="nav-item"><span class="emoji">📧</span><span class="item-label">Verteilerlisten</span></div>
+      <div class="nav-item"><span class="emoji">🗓️</span><span class="item-label">WebUntis</span></div>
+    </div>
+    <div class="impressum">Impressum</div>
+  </div>
+  <div class="sidebar-separator"></div>
+  <div class="main-content">
+    <div class="main-section">
+      <div class="tab-box speicherplatz">
+        <div class="tab-header"><span class="emoji">🗂️</span>Speicherplatz</div>
+        <div class="tab-content"></div>
+      </div>
+      <div class="tab-box email">
+        <div class="tab-header"><span class="emoji">✉️</span>E-Mail</div>
+        <div class="tab-content"></div>
+      </div>
+      <div class="tab-box aufgaben">
+        <div class="tab-header"><span class="emoji">📝</span>Aufgaben</div>
+        <div class="tab-content"></div>
+      </div>
+      <div class="tab-box news">
+        <div class="tab-header"><span class="emoji">📰</span>News</div>
+        <div class="tab-content">
+          <div class="news-title">gd-surf.de ist jetzt online!</div>
+          <div class="news-date">19.06.2025 &bull; Team gd-surf.de</div>
+          <div class="news-body">
+            Wir freuen uns, den offiziellen Start unserer neuen Website <span class="news-highlight">gd-surf.de</span> bekanntzugeben!<br><br>
+            Hier findest du nicht nur aktuelle Infos rund um unsere Website, sondern kannst auch in deiner Freizeit <span class="news-highlight">coole Minispiele</span> direkt im Browser spielen, Neues entdecken und Spaß haben.<br><br>
+            Schau regelmäßig vorbei – es kommen immer wieder neue Features und Spiele dazu. Viel Spaß beim Ausprobieren und Surfen auf <span class="news-highlight">gd-surf.de</span>! 🚀
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="side-section">
+      <div class="tab-box login">
+        <div class="tab-header"><span class="emoji">⏰</span>Letzter Login</div>
+        <div class="tab-content"></div>
+      </div>
+      <div class="tab-box stundenplan">
+        <div class="tab-header"><span class="emoji">📅</span>Stundenplan</div>
+        <div class="tab-content"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const allModulesToggle = document.getElementById('all-modules-toggle');
+    const allModulesList = document.getElementById('all-modules-list');
+    let open = false;
+    allModulesToggle.addEventListener('click', function() {
+      open = !open;
+      allModulesList.classList.toggle('open', open);
+      allModulesToggle.querySelector('.arrow').innerHTML = open ? '&#9660;' : '&#8250;';
+    });
+  </script>
 </body>
 </html>
