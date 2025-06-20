@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wortfall - Typing Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        @keyframes starAnimation {
+            0% {
+                transform: translateY(100vh);
+                background: white;
+                opacity: 1;
+            }
+            50% {
+                background: white;
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-200vh);
+                background: #00ff00;
+                opacity: 1;
+            }
+        }
+
+        @keyframes correctWord {
+            0% { transform: scale(1.5); opacity: 1; }
+            100% { transform: scale(0.1); opacity: 0; }
+        }
+
+        @keyframes letterFlyToBoss {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: translateX(200px) scale(0.1); opacity: 0.8; }
+        }
+
+        @keyframes bossHurt {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.2) rotate(5deg); }
+            75% { transform: scale(0.9) rotate(-5deg); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes bossDeath {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(2) rotate(180deg); opacity: 0.5; }
+            100% { transform: scale(0) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes lostLife {
+            0% { background: rgba(255, 0, 0, 0.3); }
+            100% { background: rgba(0, 0, 0, 0); }
+        }
+
+        body {
+            margin: 0;
+            background: #000;
+            color: #fff;
+            font-family: 'Roboto Mono', monospace;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            opacity: 1;
+            animation: starAnimation 30s linear infinite;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 20px;
+            align-items: stretch;
+            width: 90vw;
+            max-width: 1200px;
+        }
+
+        #gameArea {
+            position: relative;
+            flex: 1;
+            height: 60vh;
+            border: 2px solid #333;
+            margin: 10px;
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        #bossArea {
+            width: 200px;
+            height: 60vh;
+            border: 2px solid #333;
+            margin: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        .boss {
+            font-size: 80px;
+            margin: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .boss-health {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .boss-health-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff6b6b);
+            transition: width 0.3s ease;
+        }        .letter-projectile {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+            pointer-events: none;
+            z-index: 10;
+            transition: all 0.5s ease-in-out;
+        }
+
+        .letter-projectile {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+            pointer-events: none;
+            z-index: 10;
+        }        @keyframes letterToPipeHorizontal {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(calc(50vw - 200px), 0) scale(0.8); opacity: 0.8; }
+        }
+
+        @keyframes letterInPipeCorner {
+            0% { transform: translate(0, 0) scale(0.8); opacity: 0.8; }
+            100% { transform: translate(0, -80px) scale(0.8); opacity: 0.8; }
+        }
+
+        @keyframes letterInPipeVertical {
+            0% { transform: translate(0, 0) scale(0.8); opacity: 0.8; }
+            100% { transform: translate(100px, -200px) scale(0.1); opacity: 0; }
+        }@keyframes float {
+            0%, 100% { transform: translateY(-2px); }
+            50% { transform: translateY(2px); }
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 5px #00ff00; }
+            50% { text-shadow: 0 0 20px #00ff00; }
+        }
+
+        .word {
+            position: absolute;
+            color: #fff;
+            font-size: min(20px, 4vw);
+            transition: color 0.3s;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .word.active {
+            color: #00ff00;
+            animation: glow 1s ease-in-out infinite;
+            transform: scale(1.1);
+        }
+
+        .word.danger {
+            color: #ff0000;
+            animation: shake 0.3s ease-in-out infinite;
+            text-shadow: 0 0 10px #ff0000;
+        }        #input {
+            width: min(300px, 80vw);
+            padding: 15px;
+            font-size: min(16px, 4vw);
+            margin: 15px;
+            background: #222;
+            color: #00ff00;
+            border: 1px solid #444;
+            border-radius: 8px;            font-family: 'Roboto Mono', monospace;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        #input:focus {
+            outline: none;
+            border-color: #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+        }#stats {
+            font-size: 16px;
+            margin: 15px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+            position: relative;
+            z-index: 1;
+        }        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            z-index: 100;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background: #00ff00;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        button:hover {
+            background: #00cc00;
+        }
+
+        .flying-letter {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>    
+    <audio id="bgMusic" src="ss_bg.flac" loop></audio>
+    <div class="stars"></div>
+    <div id="stats">
+        Score: <span id="score">0</span> | 
+        Highscore: <span id="highscore">0</span> |
+        Level: <span id="level">1</span> | 
+        Leben: <span id="lives">❤️❤️❤️</span> |
+        Besiegte Bosse: <span id="defeatedBosses">0</span> |
+        Ø Zeit: <span id="avgTime">0.0</span>s
+    </div>    <div class="game-container">
+        <div id="gameArea"></div>
+        <div id="bossArea">
+            <div class="boss-health">
+                <div class="boss-health-bar"></div>
+            </div>
+            <div class="boss"></div>
+        </div>
+    </div>
+    <input type="text" id="input" placeholder="Tippe hier..." autocomplete="off">
+    <div id="gameOver">
+        <h1>Game Over!</h1>
+        <p>Dein Score: <span id="finalScore">0</span></p>
+        <button id="restartBtn">Nochmal spielen</button>
+    </div>
+
+    <script>
+        // --- DOM References ---
+        const gameArea = document.getElementById('gameArea');
+        const input = document.getElementById('input');
+        const scoreElement = document.getElementById('score');
+        const highscoreElement = document.getElementById('highscore');
+        const levelElement = document.getElementById('level');
+        const livesElement = document.getElementById('lives');
+        const defeatedBossesElement = document.getElementById('defeatedBosses');
+        const gameOverScreen = document.getElementById('gameOver');
+        const restartBtn = document.getElementById('restartBtn');
+        const bossElement = document.querySelector('.boss');
+        const bossHealthBar = document.querySelector('.boss-health-bar');
+
+        // --- Star Generation ---
+        const starContainer = document.querySelector('.stars');
+        for (let i = 0; i < 200; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100 + 100}%`;
+            star.style.animationDuration = `${Math.random() * 20 + 10}s`;
+            star.style.animationDelay = `${Math.random() * 5}s`;
+            starContainer.appendChild(star);
+        }
+
+        // --- Game State ---
+        let score = 0;
+        let highscore = parseInt(localStorage.getItem('typingGameHighscore')) || 0;
+        let defeatedBosses = parseInt(localStorage.getItem('typingGameDefeatedBosses')) || 0;
+        let level = 1;
+        let lives = 3;
+        let wordSpeed = 0.7;
+        let wordInterval = 4000;
+        let gameInterval = null;
+        let activeWords = new Set();
+        let usedWords = new Set();
+        let typingTimes = [];
+        let lastWordTime = Date.now();
+        let isGameRunning = false;
+
+        // --- Word List ---
+        const allWords = [
+            // 400 einfache Wörter
+            'der', 'die', 'das', 'und', 'ist', 'im', 'ich', 'du', 'er', 'sie', 
+            'wir', 'ihr', 'mir', 'dir', 'ja', 'nein', 'hier', 'dort', 'oben', 'unten',
+            'gut', 'schlecht', 'alt', 'neu', 'groß', 'klein', 'hoch', 'tief', 'weit', 'nah',
+            'rot', 'blau', 'grün', 'gelb', 'weiß', 'schwarz', 'bunt', 'hell', 'dunkel', 'grau',
+            'tag', 'nacht', 'morgen', 'abend', 'zeit', 'uhr', 'jahr', 'monat', 'woche', 'heute',
+            'hand', 'fuß', 'kopf', 'auge', 'nase', 'mund', 'ohr', 'haar', 'herz', 'bein',
+            'haus', 'tür', 'fenster', 'dach', 'wand', 'boden', 'raum', 'küche', 'bad', 'bett',
+            'tisch', 'stuhl', 'sofa', 'lampe', 'bild', 'uhr', 'regal', 'schrank', 'kissen', 'tuch',
+            'brot', 'milch', 'wasser', 'saft', 'kaffee', 'tee', 'obst', 'apfel', 'birne', 'banane',
+            'hund', 'katze', 'maus', 'vogel', 'fisch', 'pferd', 'kuh', 'schaf', 'huhn', 'ente',
+            'auto', 'bus', 'bahn', 'zug', 'rad', 'boot', 'schiff', 'flug', 'weg', 'straße',
+            'ball', 'spiel', 'buch', 'stift', 'blatt', 'heft', 'tasche', 'brief', 'karte', 'geld',
+            'mann', 'frau', 'kind', 'baby', 'oma', 'opa', 'mutter', 'vater', 'bruder', 'schwester',
+            'freund', 'gast', 'gruppe', 'klasse', 'schule', 'lehrer', 'arzt', 'kunde', 'chef', 'team',
+            'sonne', 'mond', 'stern', 'wind', 'regen', 'schnee', 'wolke', 'berg', 'tal', 'wald',
+            'baum', 'blume', 'gras', 'busch', 'blatt', 'rose', 'erde', 'sand', 'stein', 'meer',
+            'land', 'stadt', 'dorf', 'park', 'garten', 'wiese', 'feld', 'insel', 'fluss', 'see',
+            'eins', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'null', 'viel', 'mehr', 'alle',
+            'mir', 'mein', 'dein', 'sein', 'ihr', 'uns', 'euch', 'sich', 'wer', 'was',
+            'warm', 'kalt', 'früh', 'spät', 'lang', 'kurz', 'dick', 'dünn', 'arm', 'reich',
+            'laut', 'leise', 'stark', 'weich', 'hart', 'fest', 'rund', 'voll', 'leer', 'frei',
+            'oft', 'nie', 'bald', 'dann', 'jetzt', 'hier', 'dort', 'oben', 'unten', 'außen',
+            'gern', 'sehr', 'fast', 'ganz', 'halb', 'etwa', 'also', 'auch', 'noch', 'schon',
+            'essen', 'lesen', 'sehen', 'gehen', 'laufen', 'rufen', 'hören', 'malen', 'sagen', 'tun',
+            'leben', 'haben', 'sein', 'kommt', 'macht', 'gibt', 'bleibt', 'denkt', 'weiß', 'zeigt',
+            'bitte', 'danke', 'hallo', 'tschüss', 'ja', 'nein', 'super', 'toll', 'prima', 'okay',
+            'montag', 'woche', 'monat', 'jahr', 'zeit', 'heute', 'morgen', 'abend', 'nacht', 'tag',
+            'sport', 'spiel', 'spaß', 'musik', 'tanz', 'kunst', 'film', 'radio', 'buch', 'lied',
+            'arbeit', 'pause', 'hilfe', 'frage', 'wunsch', 'idee', 'plan', 'ziel', 'ding', 'teil',
+            'platz', 'ecke', 'mitte', 'seite', 'namen', 'wort', 'satz', 'text', 'zahl', 'punkt',
+            'krank', 'müde', 'wach', 'fit', 'froh', 'traurig', 'lustig', 'ernst', 'wild', 'lieb',
+            'rechts', 'links', 'oben', 'unten', 'vorne', 'hinten', 'neben', 'zwischen', 'bei', 'aus',
+            'gut', 'böse', 'schön', 'neu', 'alt', 'jung', 'klug', 'dumm', 'frech', 'brav',
+            
+            // 100 schwere Wörter
+            'wissenschaft', 'technologie', 'philosophie', 'mathematik', 'entwicklung',
+            'gesellschaft', 'universität', 'demokratie', 'revolution', 'umweltschutz',
+            'nachhaltigkeit', 'globalisierung', 'digitalisierung', 'kommunikation',
+            'verantwortung', 'unternehmen', 'wirtschaft', 'forschung', 'bildung', 'kultur',
+            'regierung', 'verwaltung', 'verfassung', 'parlament', 'präsident',
+            'ministerium', 'statistik', 'initiative', 'integration', 'international',
+            'atmosphäre', 'ökosystem', 'biodiversität', 'klimawandel', 'energiewende',
+            'infrastruktur', 'technologie', 'innovation', 'investition', 'qualifikation',
+            'management', 'koordination', 'organisation', 'kooperation', 'konkurrenz',
+            'motivation', 'psychologie', 'philosophie', 'meditation', 'inspiration',
+            'kreativität', 'produktion', 'logistik', 'marketing', 'controlling',
+            'entwicklung', 'ausbildung', 'erziehung', 'förderung', 'beratung',
+            'versicherung', 'verwaltung', 'vergütung', 'verhandlung', 'vermittlung',
+            'wissenschaft', 'forschung', 'entdeckung', 'erfindung', 'revolution',
+            'tradition', 'generation', 'evolution', 'religion', 'kulturell',
+            'historisch', 'politisch', 'technisch', 'praktisch', 'theoretisch',
+            'systematisch', 'methodisch', 'analytisch', 'strategisch', 'dramatisch',
+            'kommunikativ', 'produktiv', 'kreativ', 'innovativ', 'alternativ',
+            'klassisch', 'modern', 'komplex', 'konkret', 'abstrakt',
+            'transparent', 'kompetent', 'effizient', 'dynamisch', 'authentisch',
+            'strukturiert', 'organisiert', 'motiviert', 'engagiert', 'qualifiziert',
+            'interessant', 'relevant', 'bedeutsam', 'wesentlich', 'erfolgreich'
+        ];
+
+        // --- Bosses ---
+        const bosses = [
+            { emoji: '👾', maxHealth: 1000, name: 'Space Invader' },
+            { emoji: '🐉', maxHealth: 2000, name: 'Dragon' },
+            { emoji: '🤖', maxHealth: 3000, name: 'Robot' },
+            { emoji: '👻', maxHealth: 4000, name: 'Ghost' },
+            { emoji: '🦾', maxHealth: 5000, name: 'Cyborg' }
+        ];
+        let currentBoss = bosses[0];
+        let currentBossHealth = currentBoss.maxHealth;
+
+        // --- Utility Functions ---
+        function clamp(val, min, max) {
+            return Math.max(min, Math.min(max, val));
+        }
+
+        // --- Game Logic ---
+        function resetGameState() {
+            score = 0;
+            level = 1;
+            lives = 3;
+            wordSpeed = 0.7;
+            wordInterval = 4000;
+            activeWords = new Set();
+            usedWords = new Set();
+            typingTimes = [];
+            isGameRunning = true;
+            currentBoss = bosses[0];
+            currentBossHealth = currentBoss.maxHealth;
+            musicStarted = false;
+        }
+
+        function updateUI() {
+            scoreElement.textContent = score;
+            highscoreElement.textContent = highscore;
+            levelElement.textContent = level;
+            livesElement.textContent = '❤️'.repeat(clamp(lives, 0, 3));
+            defeatedBossesElement.textContent = defeatedBosses;
+            document.getElementById('avgTime').textContent = typingTimes.length ? (typingTimes.reduce((a, b) => a + b) / typingTimes.length).toFixed(1) : '0.0';
+        }
+
+        function clearGameArea() {
+            while (gameArea.firstChild) gameArea.removeChild(gameArea.firstChild);
+        }
+
+        function createWord() {
+            if (!isGameRunning || activeWords.size >= 10) return;
+            
+            // Normalisiere alle Wörter zu Kleinbuchstaben für den Vergleich
+            let availableWords = allWords.filter(w => {
+                const normalizedWord = w.toLowerCase();
+                return !usedWords.has(normalizedWord) && 
+                       !activeWords.has(normalizedWord) && 
+                       !Array.from(document.querySelectorAll('.word')).some(el => 
+                           el.textContent.toLowerCase() === normalizedWord
+                       );
+            });
+            
+            if (availableWords.length === 0) {
+                usedWords.clear();
+                availableWords = allWords.filter(w => {
+                    const normalizedWord = w.toLowerCase();
+                    return !activeWords.has(normalizedWord) && 
+                           !Array.from(document.querySelectorAll('.word')).some(el => 
+                               el.textContent.toLowerCase() === normalizedWord
+                           );
+                });
+            }
+            
+            if (availableWords.length === 0) return;
+            
+            const word = availableWords[Math.floor(Math.random() * availableWords.length)];
+            const normalizedWord = word.toLowerCase();
+            usedWords.add(normalizedWord);
+            activeWords.add(normalizedWord);
+            
+            const wordElement = document.createElement('div');
+            wordElement.className = 'word';
+            wordElement.textContent = word;  // Behalte Original-Schreibweise für die Anzeige
+            wordElement.dataset.appearTime = Date.now();
+            wordElement.dataset.normalizedWord = normalizedWord;  // Speichere normalisierte Version
+            
+            const safeMargin = 50;
+            const maxX = Math.max(50, gameArea.offsetWidth - safeMargin);
+            wordElement.style.left = (safeMargin + Math.random() * (maxX - safeMargin * 2)) + 'px';
+            wordElement.style.top = '0px';
+            gameArea.appendChild(wordElement);
+            
+            let position = 0;
+            let lastFrame = Date.now();
+            
+            function fall() {
+                if (!isGameRunning || !activeWords.has(normalizedWord)) return;
+                
+                const now = Date.now();
+                const delta = (now - lastFrame) / 16.667;
+                lastFrame = now;
+                
+                position += wordSpeed * delta;
+                wordElement.style.top = position + 'px';
+                
+                if (position > gameArea.offsetHeight) {
+                    if (gameArea.contains(wordElement)) {
+                        wordElement.classList.add('removing');
+                        setTimeout(() => {
+                            if (gameArea.contains(wordElement)) {
+                                gameArea.removeChild(wordElement);
+                                activeWords.delete(normalizedWord);
+                                loseLife();
+                            }
+                        }, 100);
+                    }
+                } else if (gameArea.contains(wordElement)) {
+                    if (position > gameArea.offsetHeight * 0.7) {
+                        wordElement.classList.add('danger');
+                    } else {
+                        wordElement.classList.remove('danger');
+                    }
+                    requestAnimationFrame(fall);
+                }
+            }
+            
+            requestAnimationFrame(fall);
+        }
+
+        function loseLife() {
+            if (!isGameRunning) return;
+            lives = clamp(lives - 1, 0, 3);
+            updateUI();
+            gameArea.style.animation = 'lostLife 0.5s';
+            setTimeout(() => gameArea.style.animation = '', 500);
+            if (lives <= 0) {
+                endGame();
+            }
+        }
+
+        function checkWord(inputWord) {
+            if (!inputWord) return false;
+            const normalizedInput = inputWord.toLowerCase();
+            if (!activeWords.has(normalizedInput)) return false;
+            
+            const wordElements = document.querySelectorAll('.word');
+            for (let element of wordElements) {
+                const normalizedWord = element.dataset.normalizedWord || element.textContent.toLowerCase();
+                if (normalizedWord === normalizedInput) {
+                    element.classList.add('removing');
+                    element.style.pointerEvents = 'none';
+                    const appearTime = parseInt(element.dataset.appearTime) || Date.now();
+                    const typingTime = (Date.now() - appearTime) / 1000;
+                    typingTimes.push(typingTime);
+                    updateUI();
+                    activeWords.delete(normalizedInput);
+                    element.style.animation = 'correctWord 0.5s forwards';
+                    setTimeout(() => {
+                        if (gameArea.contains(element)) gameArea.removeChild(element);
+                    }, 500);
+                    increaseScore(inputWord);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function increaseScore(word) {
+            score += 10 * level;
+            updateUI();
+            if (score >= level * 100) levelUp();
+        }        function levelUp() {
+            level++;
+            updateUI();
+            // Langsamerer Geschwindigkeitsanstieg
+            wordSpeed += 0.05;
+            // Schnellere Wortintervall-Verringerung
+            wordInterval = Math.max(800, wordInterval - 300);
+            
+            // Mehr zusätzliche Wörter bei Levelaufstieg
+            if (level % 2 === 0) {  // Jetzt alle 2 Level statt 3
+                setTimeout(createWord, 0);
+                setTimeout(createWord, wordInterval / 3);
+                if (level % 4 === 0) {  // Bei jedem 4. Level ein drittes Wort
+                    setTimeout(createWord, wordInterval * 2/3);
+                }
+            }
+            
+            clearInterval(gameInterval);
+            gameInterval = setInterval(createWord, wordInterval);
+        }
+
+        function endGame() {
+            isGameRunning = false;
+            clearInterval(gameInterval);
+            // Update highscore if current score is higher
+            if (score > highscore) {
+                highscore = score;
+                localStorage.setItem('typingGameHighscore', highscore);
+            }
+            updateUI();
+            document.getElementById('finalScore').textContent = score;
+            gameOverScreen.style.display = 'block';
+            input.disabled = true;
+        }
+
+        function startGame() {
+            clearInterval(gameInterval);
+            resetGameState();
+            updateUI();
+            gameOverScreen.style.display = 'none';
+            input.disabled = false;
+            input.value = '';
+            input.focus();
+            clearGameArea();
+            createWord();
+            gameInterval = setInterval(createWord, wordInterval);
+            spawnBoss();
+        }
+
+        // --- Input Handler ---
+        const bgMusic = document.getElementById('bgMusic');
+        let musicStarted = false;
+
+        input.addEventListener('input', (e) => {
+            if (!isGameRunning) return;
+            
+            // Starte die Musik beim ersten Tastendruck
+            if (!musicStarted && e.target.value.length === 1) {
+                musicStarted = true;
+                bgMusic.play().catch(error => console.log('Autoplay prevented:', error));
+            }
+            
+            try {
+                const inputWord = e.target.value.trim().toLowerCase();
+                let matchFound = false;
+                
+                const words = document.querySelectorAll('.word');
+                words.forEach(word => word.classList.remove('active'));
+                
+                for (const wordEl of words) {
+                    const wordText = wordEl.textContent.toLowerCase();
+                    if (wordText.startsWith(inputWord) && inputWord.length > 0) {
+                        wordEl.classList.add('active');
+                        matchFound = true;
+                        
+                        if (wordText === inputWord && activeWords.has(wordText)) {
+                            e.target.value = '';
+                            if (checkWord(wordText)) {
+                                input.style.backgroundColor = '#00440022';
+                                setTimeout(() => input.style.backgroundColor = '', 200);
+                                damageBoss(wordText);
+                            }
+                            break;
+                        }
+                    }
+                }
+                  if (!matchFound && inputWord.length >= 2) {
+                    input.classList.add('shake');
+                    setTimeout(() => {
+                        input.classList.remove('shake');
+                    }, 300);
+                }
+            } catch (error) {
+                console.error('Input handler error:', error);
+                e.target.value = '';
+            }
+        });
+
+        // --- Boss Logic ---
+        function spawnBoss() {
+            const bossIndex = Math.min(Math.floor((level - 1) / 5), bosses.length - 1);
+            currentBoss = bosses[bossIndex];
+            currentBossHealth = currentBoss.maxHealth;
+            bossElement.textContent = currentBoss.emoji;
+            bossElement.style.animation = '';
+            bossHealthBar.style.width = '100%';
+        }
+
+        function updateBossHealth() {
+            const healthPercent = (currentBossHealth / currentBoss.maxHealth) * 100;
+            bossHealthBar.style.width = healthPercent + '%';
+        }
+
+        function damageBoss(word) {
+            if (!isGameRunning || !currentBoss) return;
+            const damage = word.length * 10 * level;
+            currentBossHealth = clamp(currentBossHealth - damage, 0, currentBoss.maxHealth);
+            updateBossHealth();
+            bossElement.style.animation = 'bossHurt 0.3s ease';
+            setTimeout(() => bossElement.style.animation = '', 300);
+            if (currentBossHealth <= 0) {
+                bossElement.style.animation = 'bossDeath 1s forwards';
+                // Increment and save defeated bosses count
+                defeatedBosses++;
+                localStorage.setItem('typingGameDefeatedBosses', defeatedBosses);
+                setTimeout(() => {
+                    score += currentBoss.maxHealth;
+                    updateUI();
+                    spawnBoss();
+                }, 1000);
+            }
+        }
+
+        // --- Restart Button ---
+        restartBtn.addEventListener('click', startGame);
+
+        // --- Game Start ---
+        window.addEventListener('DOMContentLoaded', () => {
+            updateUI();
+            startGame();
+        });
+    </script>
+</body>
+</html>
