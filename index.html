@@ -444,7 +444,14 @@
       </div>
       <div class="tab-box aufgaben">
         <div class="tab-header"><span class="emoji">📝</span>Aufgaben</div>
-        <div class="tab-content"></div>
+        <div class="tab-content" id="aufgaben-content">
+          <div class="aufgabe" id="wordfall-boss-task">
+            <div style="font-weight:600;margin-bottom:4px;">Wordfall: Besiege 20 Bosse!</div>
+            <div>Besiege insgesamt 20 Bosse im <a href="wordfall.html" style="color:#7bb1ff;text-decoration:underline;">Wordfall</a>-Spiel.<br>
+            <span id="boss-progress" style="display:inline-block;margin-top:6px;font-weight:500;">Fortschritt: <span id="boss-count">0</span>/20</span></div>
+            <div id="boss-task-done" style="margin-top:8px;color:#4abf40;font-weight:600;display:none;">Aufgabe abgeschlossen! 🎉</div>
+          </div>
+        </div>
       </div>
       <div class="tab-box news">
         <div class="tab-header"><span class="emoji">📰</span>News</div>
@@ -479,6 +486,20 @@
       allModulesList.classList.toggle('open', open);
       allModulesToggle.querySelector('.arrow').innerHTML = open ? '&#9660;' : '&#8250;';
     });
+    // Aufgabenmodul: Fortschritt für Wordfall-Boss-Aufgabe anzeigen
+function updateBossTask() {
+  const bossCount = parseInt(localStorage.getItem('wordfall_bosses') || '0', 10);
+  document.getElementById('boss-count').textContent = bossCount;
+  if (bossCount >= 20) {
+    document.getElementById('boss-task-done').style.display = 'block';
+  } else {
+    document.getElementById('boss-task-done').style.display = 'none';
+  }
+}
+window.addEventListener('DOMContentLoaded', updateBossTask);
+window.addEventListener('storage', function(e) {
+  if (e.key === 'wordfall_bosses') updateBossTask();
+});
   </script>
 </body>
 </html>
