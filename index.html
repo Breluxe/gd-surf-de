@@ -543,22 +543,25 @@
       allModulesToggle.querySelector('.arrow').innerHTML = open ? '&#9660;' : '&#8250;';
     });
     // Aufgabenmodul: Fortschritt für Wordfall-Boss-Aufgabe anzeigen
-function updateBossTask() {
-  const bossCount = parseInt(localStorage.getItem('wordfall_bosses') || '0', 10);
-  const progress = Math.min(bossCount, 20);
-  const percent = Math.min(100, Math.round((progress / 20) * 100));
-  document.getElementById('boss-progress-bar').style.width = percent + '%';
-  document.getElementById('boss-progress-text').textContent = progress + ' / 20';
-  if (bossCount >= 20) {
-    document.getElementById('boss-task-done').style.display = 'block';
-  } else {
-    document.getElementById('boss-task-done').style.display = 'none';
-  }
-}
-window.addEventListener('DOMContentLoaded', updateBossTask);
-window.addEventListener('storage', function(e) {
-  if (e.key === 'wordfall_bosses') updateBossTask();
-});
+    function updateBossTask() {
+      const bossCount = parseInt(localStorage.getItem('wordfall_bosses') || '0', 10);
+      const progress = Math.min(bossCount, 20);
+      const percent = Math.min(100, Math.round((progress / 20) * 100));
+      document.getElementById('boss-progress-bar').style.width = percent + '%';
+      document.getElementById('boss-progress-text').textContent = progress + ' / 20';
+      if (bossCount >= 20) {
+        document.getElementById('boss-task-done').style.display = 'block';
+      } else {
+        document.getElementById('boss-task-done').style.display = 'none';
+      }
+    }
+    window.addEventListener('DOMContentLoaded', function() {
+      updateBossTask();
+      setInterval(updateBossTask, 500); // Poll alle 0,5s für Live-Update
+    });
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'wordfall_bosses') updateBossTask();
+    });
   </script>
 </body>
 </html>
