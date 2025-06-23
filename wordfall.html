@@ -692,6 +692,9 @@
                 bossElement.style.animation = 'bossDeath 1s forwards';
                 // Increment and save defeated bosses count
                 defeatedBosses++;
+                // Schreibe Wert für ISurf-Questbar
+                localStorage.setItem('wordfall_bosses', defeatedBosses);
+                // Schreibe weiterhin für Wordfall-Highscore
                 localStorage.setItem('typingGameDefeatedBosses', defeatedBosses);
                 setTimeout(() => {
                     score += currentBoss.maxHealth;
