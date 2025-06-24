@@ -174,7 +174,12 @@ function renderBoard() {
   for (let y = 0; y < BOARD_SIZE; y++) {
     for (let x = 0; x < BOARD_SIZE; x++) {
       const cell = document.createElement('div');
-      cell.className = 'cell' + (board[y][x] ? ' filled' : '');
+      let fill = board[y][x];
+      cell.className = 'cell' + (fill ? ' filled' : '');
+      if (fill && typeof fill === 'string') {
+        cell.style.background = fill;
+        cell.style.boxShadow = `0 0 8px ${fill}cc`;
+      }
       cell.dataset.x = x;
       cell.dataset.y = y;
       boardElem.appendChild(cell);
@@ -240,11 +245,11 @@ function canPlaceBlock(shape, px, py) {
   return true;
 }
 
-function placeBlock(shape, px, py) {
+function placeBlock(shape, px, py, color) {
   for (let y = 0; y < shape.length; y++) {
     for (let x = 0; x < shape[y].length; x++) {
       if (shape[y][x]) {
-        board[py+y][px+x] = 1;
+        board[py+y][px+x] = color || 1;
       }
     }
   }
@@ -269,8 +274,8 @@ function checkAndClear() {
     }
   }
   // 3x3 Blöcke
-  for (let by = 0; by < 3; by++) {
-    for (let bx = 0; bx < 3; bx++) {
+  for (let by = 0; by < Math.floor(BOARD_SIZE/3); by++) {
+    for (let bx = 0; bx < Math.floor(BOARD_SIZE/3); bx++) {
       let full = true;
       for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) if (!board[by*3+y][bx*3+x]) full = false;
       if (full) {
@@ -389,9 +394,10 @@ boardElem.addEventListener('drop', e => {
   const rect = boardElem.getBoundingClientRect();
   const x = Math.floor((e.clientX - rect.left) / (rect.width / BOARD_SIZE));
   const y = Math.floor((e.clientY - rect.top) / (rect.height / BOARD_SIZE));
+  const color = BLOCK_COLORS[idx % BLOCK_COLORS.length];
   if (canPlaceBlock(block.shape, x, y)) {
     saveUndo();
-    placeBlock(block.shape, x, y);
+    placeBlock(block.shape, x, y, color);
     currentBlocks[idx] = null;
     renderBoard();
     renderBlocks();
