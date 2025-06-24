@@ -54,22 +54,28 @@
             margin-top: 40px;
         }
         .block {
-            display: inline-grid;
-            grid-template-columns: repeat(5, 24px);
-            grid-template-rows: repeat(5, 24px);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(24px, 1fr));
+            grid-auto-rows: 24px;
             gap: 2px;
             cursor: grab;
             user-select: none;
-            background: #232b36;
+            background: transparent;
             border-radius: 8px;
-            padding: 6px;
-            box-shadow: 0 1px 4px #0006;
+            padding: 0;
+            box-shadow: none;
+            width: max-content;
+            height: max-content;
+            justify-content: start;
+            align-items: start;
         }
         .block-cell {
             width: 24px;
             height: 24px;
             background: #7bb1ff;
             border-radius: 4px;
+            margin: 0;
+            padding: 0;
             visibility: hidden;
         }
         .block-cell.filled {
@@ -190,12 +196,17 @@ function renderBlocks() {
   blocksElem.innerHTML = '';
   currentBlocks.forEach((block, idx) => {
     if (!block) return;
+    // Dynamische Größe für Block-Grid
+    const rows = block.shape.length;
+    const cols = Math.max(...block.shape.map(r => r.length));
     const blockDiv = document.createElement('div');
     blockDiv.className = 'block';
     blockDiv.draggable = true;
     blockDiv.dataset.idx = idx;
-    for (let by = 0; by < BLOCK_SIZE; by++) {
-      for (let bx = 0; bx < BLOCK_SIZE; bx++) {
+    blockDiv.style.gridTemplateRows = `repeat(${rows}, 24px)`;
+    blockDiv.style.gridTemplateColumns = `repeat(${cols}, 24px)`;
+    for (let by = 0; by < rows; by++) {
+      for (let bx = 0; bx < cols; bx++) {
         const cell = document.createElement('div');
         cell.className = 'block-cell' + (block.shape[by] && block.shape[by][bx] ? ' filled' : '');
         blockDiv.appendChild(cell);
