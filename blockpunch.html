@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockpunch</title>
+    <style>
+        body {
+            background: #181c22;
+            color: #fff;
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .game-container {
+            margin-top: 32px;
+            display: flex;
+            flex-direction: row;
+            gap: 40px;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(9, 36px);
+            grid-template-rows: repeat(9, 36px);
+            gap: 3px;
+            background: #232b36;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px #0008;
+            padding: 12px;
+        }
+        .cell {
+            width: 36px;
+            height: 36px;
+            background: #222c38;
+            border-radius: 6px;
+            transition: background 0.2s;
+            box-sizing: border-box;
+        }
+        .cell.filled {
+            background: #4abf40;
+            box-shadow: 0 0 8px #4abf40cc;
+        }
+        .cell.highlight {
+            background: #ffd700;
+        }
+        .blocks {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 40px;
+        }
+        .block {
+            display: inline-grid;
+            grid-template-columns: repeat(5, 24px);
+            grid-template-rows: repeat(5, 24px);
+            gap: 2px;
+            cursor: grab;
+            user-select: none;
+            background: #232b36;
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: 0 1px 4px #0006;
+        }
+        .block-cell {
+            width: 24px;
+            height: 24px;
+            background: #7bb1ff;
+            border-radius: 4px;
+        }
+        .block.dragging {
+            opacity: 0.6;
+        }
+        .scoreboard {
+            margin-top: 24px;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        .btn-row {
+            margin-top: 18px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .btn {
+            background: #003366;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 18px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: #0055aa;
+        }
+        .game-over {
+            color: #ff6b6b;
+            font-size: 1.3rem;
+            margin-top: 18px;
+            font-weight: 600;
+        }
+        @media (max-width: 900px) {
+            .game-container { flex-direction: column; gap: 18px; }
+            .blocks { flex-direction: row; margin-top: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="scoreboard">
+        <div>Punkte: <span id="score">0</span></div>
+        <div>Highscore: <span id="highscore">0</span></div>
+    </div>
+    <div class="game-container">
+        <div class="board" id="board"></div>
+        <div class="blocks" id="blocks"></div>
+    </div>
+    <div class="btn-row">
+        <button class="btn" id="undoBtn">Rückgängig</button>
+        <button class="btn" id="restartBtn">Neustart</button>
+    </div>
+    <div class="game-over" id="gameOver" style="display:none;">Game Over! Kein Zug mehr möglich.</div>
+    <script>
+        // --- Blockpunch Game Logic ---
+const BOARD_SIZE = 9;
+const BLOCK_SIZE = 5;
+const BLOCKS_PER_ROUND = 3;
+const board = [];
+let currentBlocks = [];
+let score = 0;
+let highscore = parseInt(localStorage.getItem('blockpunch_highscore')||'0',10);
+let undoStack = [];
+let gameOver = false;
+
+const boardElem = document.getElementById('board');
+const blocksElem = document.getElementById('blocks');
+const scoreElem = document.getElementById('score');
+const highscoreElem = document.getElementById('highscore');
+const gameOverElem = document.getElementById('gameOver');
+const undoBtn = document.getElementById('undoBtn');
+const restartBtn = document.getElementById('restartBtn');
+
+// Blockformen (1: Block, 0: leer)
+const BLOCK_SHAPES = [
+  // Einfache
+  [[1]],
+  [[1,1]],
+  [[1],[1]],
+  [[1,1,1]],
+  [[1],[1],[1]],
+  [[1,1],[1,1]],
+  // L
+  [[1,0],[1,0],[1,1]],
+  [[0,1],[0,1],[1,1]],
+  // T
+  [[1,1,1],[0,1,0]],
+  // S
+  [[0,1,1],[1,1,0]],
+  [[1,1,0],[0,1,1]],
+  // Längere
+  [[1,1,1,1]],
+  [[1],[1],[1],[1]],
+  // 3x3 Block
+  [[1,1,1],[1,1,1],[1,1,1]],
+];
+
+function createEmptyBoard() {
+  return Array.from({length: BOARD_SIZE}, () => Array(BOARD_SIZE).fill(0));
+}
+
+function renderBoard() {
+  boardElem.innerHTML = '';
+  for (let y = 0; y < BOARD_SIZE; y++) {
+    for (let x = 0; x < BOARD_SIZE; x++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (board[y][x] ? ' filled' : '');
+      cell.dataset.x = x;
+      cell.dataset.y = y;
+      boardElem.appendChild(cell);
+    }
+  }
+}
+
+function randomBlockShape() {
+  return BLOCK_SHAPES[Math.floor(Math.random()*BLOCK_SHAPES.length)];
+}
+
+function renderBlocks() {
+  blocksElem.innerHTML = '';
+  currentBlocks.forEach((block, idx) => {
+    if (!block) return;
+    const blockDiv = document.createElement('div');
+    blockDiv.className = 'block';
+    blockDiv.draggable = true;
+    blockDiv.dataset.idx = idx;
+    for (let by = 0; by < BLOCK_SIZE; by++) {
+      for (let bx = 0; bx < BLOCK_SIZE; bx++) {
+        const cell = document.createElement('div');
+        cell.className = 'block-cell';
+        if (!block.shape[by] || !block.shape[by][bx]) {
+          cell.style.visibility = 'hidden';
+        }
+        blockDiv.appendChild(cell);
+      }
+    }
+    blockDiv.addEventListener('dragstart', e => {
+      blockDiv.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', idx);
+    });
+    blockDiv.addEventListener('dragend', () => blockDiv.classList.remove('dragging'));
+    blocksElem.appendChild(blockDiv);
+  });
+}
+
+function canPlaceBlock(shape, px, py) {
+  for (let y = 0; y < shape.length; y++) {
+    for (let x = 0; x < shape[y].length; x++) {
+      if (shape[y][x]) {
+        if (py+y >= BOARD_SIZE || px+x >= BOARD_SIZE) return false;
+        if (board[py+y][px+x]) return false;
+      }
+    }
+  }
+  return true;
+}
+
+function placeBlock(shape, px, py) {
+  for (let y = 0; y < shape.length; y++) {
+    for (let x = 0; x < shape[y].length; x++) {
+      if (shape[y][x]) {
+        board[py+y][px+x] = 1;
+      }
+    }
+  }
+}
+
+function checkAndClear() {
+  let cleared = 0;
+  // Reihen
+  for (let y = 0; y < BOARD_SIZE; y++) {
+    if (board[y].every(v => v)) {
+      for (let x = 0; x < BOARD_SIZE; x++) board[y][x] = 0;
+      cleared++;
+    }
+  }
+  // Spalten
+  for (let x = 0; x < BOARD_SIZE; x++) {
+    let full = true;
+    for (let y = 0; y < BOARD_SIZE; y++) if (!board[y][x]) full = false;
+    if (full) {
+      for (let y = 0; y < BOARD_SIZE; y++) board[y][x] = 0;
+      cleared++;
+    }
+  }
+  // 3x3 Blöcke
+  for (let by = 0; by < 3; by++) {
+    for (let bx = 0; bx < 3; bx++) {
+      let full = true;
+      for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) if (!board[by*3+y][bx*3+x]) full = false;
+      if (full) {
+        for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) board[by*3+y][bx*3+x] = 0;
+        cleared++;
+      }
+    }
+  }
+  return cleared;
+}
+
+function updateScore(cleared) {
+  if (cleared > 0) {
+    score += cleared * 10;
+    if (score > highscore) {
+      highscore = score;
+      localStorage.setItem('blockpunch_highscore', highscore);
+    }
+  }
+  scoreElem.textContent = score;
+  highscoreElem.textContent = highscore;
+}
+
+function saveUndo() {
+  undoStack.push({
+    board: board.map(row => row.slice()),
+    blocks: currentBlocks.map(b => b ? {shape: b.shape.map(r=>r.slice())} : null),
+    score,
+  });
+  if (undoStack.length > 20) undoStack.shift();
+}
+
+function loadUndo() {
+  if (undoStack.length === 0) return;
+  const last = undoStack.pop();
+  for (let y = 0; y < BOARD_SIZE; y++) board[y] = last.board[y].slice();
+  currentBlocks = last.blocks.map(b => b ? {shape: b.shape.map(r=>r.slice())} : null);
+  score = last.score;
+  renderBoard();
+  renderBlocks();
+  updateScore(0);
+  gameOverElem.style.display = 'none';
+  gameOver = false;
+}
+
+function nextBlocks() {
+  currentBlocks = Array.from({length: BLOCKS_PER_ROUND}, () => ({shape: randomBlockShape()}));
+  renderBlocks();
+}
+
+function hasMoves() {
+  for (const block of currentBlocks) {
+    if (!block) continue;
+    for (let y = 0; y < BOARD_SIZE; y++) {
+      for (let x = 0; x < BOARD_SIZE; x++) {
+        if (canPlaceBlock(block.shape, x, y)) return true;
+      }
+    }
+  }
+  return false;
+}
+
+function checkGameOver() {
+  if (!hasMoves()) {
+    gameOverElem.style.display = 'block';
+    gameOver = true;
+  }
+}
+
+function startGame() {
+  for (let y = 0; y < BOARD_SIZE; y++) for (let x = 0; x < BOARD_SIZE; x++) board[y][x] = 0;
+  score = 0;
+  undoStack = [];
+  gameOver = false;
+  gameOverElem.style.display = 'none';
+  nextBlocks();
+  renderBoard();
+  updateScore(0);
+}
+
+// Drag & Drop auf das Board
+boardElem.addEventListener('dragover', e => {
+  if (gameOver) return;
+  e.preventDefault();
+  const rect = boardElem.getBoundingClientRect();
+  const x = Math.floor((e.clientX - rect.left) / (rect.width / BOARD_SIZE));
+  const y = Math.floor((e.clientY - rect.top) / (rect.height / BOARD_SIZE));
+  // Optional: Highlight mögliche Felder
+});
+
+boardElem.addEventListener('drop', e => {
+  if (gameOver) return;
+  e.preventDefault();
+  const idx = parseInt(e.dataTransfer.getData('text/plain'), 10);
+  const block = currentBlocks[idx];
+  if (!block) return;
+  const rect = boardElem.getBoundingClientRect();
+  const x = Math.floor((e.clientX - rect.left) / (rect.width / BOARD_SIZE));
+  const y = Math.floor((e.clientY - rect.top) / (rect.height / BOARD_SIZE));
+  if (canPlaceBlock(block.shape, x, y)) {
+    saveUndo();
+    placeBlock(block.shape, x, y);
+    currentBlocks[idx] = null;
+    renderBoard();
+    renderBlocks();
+    const cleared = checkAndClear();
+    renderBoard();
+    updateScore(cleared);
+    if (currentBlocks.every(b => !b)) nextBlocks();
+    checkGameOver();
+  }
+});
+
+undoBtn.addEventListener('click', loadUndo);
+restartBtn.addEventListener('click', startGame);
+
+// Init
+for (let y = 0; y < BOARD_SIZE; y++) board[y] = Array(BOARD_SIZE).fill(0);
+startGame();
+    </script>
+</body>
+</html>
