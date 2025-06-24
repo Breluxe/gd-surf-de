@@ -70,6 +70,10 @@
             height: 24px;
             background: #7bb1ff;
             border-radius: 4px;
+            visibility: hidden;
+        }
+        .block-cell.filled {
+            visibility: visible;
         }
         .block.dragging {
             opacity: 0.6;
@@ -125,11 +129,11 @@
     </div>
     <div class="game-over" id="gameOver" style="display:none;">Game Over! Kein Zug mehr möglich.</div>
     <script>
-        // --- Blockpunch Game Logic ---
+// --- Blockpunch Game Logic ---
 const BOARD_SIZE = 9;
 const BLOCK_SIZE = 5;
 const BLOCKS_PER_ROUND = 3;
-const board = [];
+let board = [];
 let currentBlocks = [];
 let score = 0;
 let highscore = parseInt(localStorage.getItem('blockpunch_highscore')||'0',10);
@@ -144,27 +148,20 @@ const gameOverElem = document.getElementById('gameOver');
 const undoBtn = document.getElementById('undoBtn');
 const restartBtn = document.getElementById('restartBtn');
 
-// Blockformen (1: Block, 0: leer)
 const BLOCK_SHAPES = [
-  // Einfache
   [[1]],
   [[1,1]],
   [[1],[1]],
   [[1,1,1]],
   [[1],[1],[1]],
   [[1,1],[1,1]],
-  // L
   [[1,0],[1,0],[1,1]],
   [[0,1],[0,1],[1,1]],
-  // T
   [[1,1,1],[0,1,0]],
-  // S
   [[0,1,1],[1,1,0]],
   [[1,1,0],[0,1,1]],
-  // Längere
   [[1,1,1,1]],
   [[1],[1],[1],[1]],
-  // 3x3 Block
   [[1,1,1],[1,1,1],[1,1,1]],
 ];
 
@@ -200,10 +197,7 @@ function renderBlocks() {
     for (let by = 0; by < BLOCK_SIZE; by++) {
       for (let bx = 0; bx < BLOCK_SIZE; bx++) {
         const cell = document.createElement('div');
-        cell.className = 'block-cell';
-        if (!block.shape[by] || !block.shape[by][bx]) {
-          cell.style.visibility = 'hidden';
-        }
+        cell.className = 'block-cell' + (block.shape[by] && block.shape[by][bx] ? ' filled' : '');
         blockDiv.appendChild(cell);
       }
     }
@@ -294,7 +288,7 @@ function saveUndo() {
 function loadUndo() {
   if (undoStack.length === 0) return;
   const last = undoStack.pop();
-  for (let y = 0; y < BOARD_SIZE; y++) board[y] = last.board[y].slice();
+  board = last.board.map(row => row.slice());
   currentBlocks = last.blocks.map(b => b ? {shape: b.shape.map(r=>r.slice())} : null);
   score = last.score;
   renderBoard();
@@ -329,7 +323,7 @@ function checkGameOver() {
 }
 
 function startGame() {
-  for (let y = 0; y < BOARD_SIZE; y++) for (let x = 0; x < BOARD_SIZE; x++) board[y][x] = 0;
+  board = createEmptyBoard();
   score = 0;
   undoStack = [];
   gameOver = false;
@@ -343,10 +337,6 @@ function startGame() {
 boardElem.addEventListener('dragover', e => {
   if (gameOver) return;
   e.preventDefault();
-  const rect = boardElem.getBoundingClientRect();
-  const x = Math.floor((e.clientX - rect.left) / (rect.width / BOARD_SIZE));
-  const y = Math.floor((e.clientY - rect.top) / (rect.height / BOARD_SIZE));
-  // Optional: Highlight mögliche Felder
 });
 
 boardElem.addEventListener('drop', e => {
@@ -376,7 +366,6 @@ undoBtn.addEventListener('click', loadUndo);
 restartBtn.addEventListener('click', startGame);
 
 // Init
-for (let y = 0; y < BOARD_SIZE; y++) board[y] = Array(BOARD_SIZE).fill(0);
 startGame();
     </script>
 </body>
