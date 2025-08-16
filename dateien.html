@@ -1,0 +1,93 @@
+import { motion } from "framer-motion";
+
+export default function Dateien() {
+  return (
+    <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
+      {/* Background Schimmer */}
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 via-pink-500/20 to-yellow-400/30 blur-3xl animate-pulse" />
+
+      {/* Hero Section */}
+      <section className="relative flex flex-col items-center justify-center min-h-screen text-center p-6">
+        <motion.h1
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          className="text-5xl md:text-7xl font-extrabold bg-gradient-to-r from-purple-600 via-pink-500 to-yellow-400 bg-clip-text text-transparent drop-shadow-xl"
+        >
+          Dateien jetzt bei{" "}
+          <span className="underline decoration-pink-500">Breluxe</span> im Keller
+          sichern
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 1 }}
+          className="mt-6 text-lg text-gray-700 max-w-2xl"
+        >
+          Willkommen bei der vermutlich fragwürdigsten Cloud-Lösung Europas. Wir
+          versprechen dir keine unbegrenzte Geschwindigkeit, keine High-End-Server
+          und keine Sicherheit auf Bankenniveau – aber dafür bekommst du echte
+          Keller-Atmosphäre. Deine Dateien werden sorgsam neben alten Farbdosen,
+          vergessenen Weihnachtskugeln und einer verrosteten Werkzeugkiste
+          platziert. Breluxe bedeutet: Speicherplatz mit Charakter.
+        </motion.p>
+
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="mt-10 px-8 py-4 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 rounded-2xl text-white font-bold text-lg shadow-lg backdrop-blur-md hover:shadow-2xl"
+        >
+          Jetzt hochladen
+        </motion.button>
+      </section>
+
+      {/* Scrolling Section */}
+      <section className="relative flex flex-col items-center justify-center min-h-screen text-center p-10 bg-gray-100/80 backdrop-blur-xl">
+        <motion.h2
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          viewport={{ once: true }}
+          className="text-3xl md:text-5xl font-extrabold text-gray-900"
+        >
+          ❌ Disclaimer ❌
+        </motion.h2>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 1 }}
+          viewport={{ once: true }}
+          className="mt-6 max-w-xl text-lg text-gray-700"
+        >
+          Deine Dateien liegen tatsächlich auf einem alten, staubigen Laptop aus dem
+          Jahr 2009, den wir irgendwann mal von einem Sperrmüllhaufen gerettet
+          haben. 💻 Der Lüfter klingt wie ein startender Düsenjet, die Tastatur hat
+          schon längst keine Beschriftung mehr und die Festplatte kratzt so
+          verdächtig, dass man das Gefühl hat, sie plant ihren eigenen Abgang.
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 1 }}
+          viewport={{ once: true }}
+          className="mt-6 max-w-xl text-lg font-semibold text-red-600"
+        >
+          Falls du dachtest, hier gäbe es ein sicheres Investment für deine
+          wertvollen Daten: Nein. Ganz ehrlich, spar dir dein Geld lieber und gönn
+          dir was Schönes – Pizza, ein neues Handy oder einfach Cloud-Speicher bei
+          jemandem, der nicht auf eine Steckdosenleiste von 1998 angewiesen ist.
+          🪦
+        </motion.p>
+      </section>
+
+      {/* Footer */}
+      <footer className="p-6 text-center text-gray-600 text-sm">
+        © 2025 Breluxe Cloud – Keller Solutions GmbH. Der wohl ehrlichste Anbieter
+        der Welt.
+      </footer>
+    </div>
+  );
+}
