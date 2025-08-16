@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DAS DUNKLE GEHEIMNIS – Cinema</title>
+  <style>
+    html, body {
+      background: #fff;
+      color: #232b36;
+      font-family: 'Inter', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      width: 100vw;
+      overflow-x: hidden;
+    }
+    .main-wrapper {
+      background: #fff;
+      min-height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .hero-section {
+      width: 100%;
+      padding: 64px 0 32px 0;
+      background: #fff;
+      box-shadow: 0 2px 24px #eaf0ff22;
+      text-align: center;
+    }
+    .hero-title {
+      font-size: 3rem;
+      font-weight: 900;
+      background: linear-gradient(90deg, #ffd700 0%, #ff6b6b 50%, #7bb1ff 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 18px;
+      letter-spacing: 0.03em;
+      text-shadow: 0 2px 24px #ffd70022;
+    }
+    .hero-desc {
+      font-size: 1.25rem;
+      color: #232b36;
+      opacity: 0.95;
+      max-width: 700px;
+      margin: 0 auto 32px auto;
+      line-height: 1.5;
+      text-shadow: 0 1px 8px #ffd70011;
+    }
+    .stream-btn {
+      background: linear-gradient(90deg, #ffd700 0%, #ff6b6b 100%);
+      color: #232b36;
+      border: none;
+      border-radius: 12px;
+      padding: 18px 48px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 24px #ffd70044;
+      margin-top: 32px;
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    .stream-btn:hover {
+      transform: scale(1.07);
+      box-shadow: 0 8px 32px #ffd70088;
+    }
+    .info-section {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 2px 24px #eaf0ff44;
+      padding: 48px 32px;
+      max-width: 800px;
+      margin: 0 auto 48px auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      position: relative;
+      z-index: 2;
+    }
+    .info-title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #ffd700;
+      margin-bottom: 12px;
+      letter-spacing: 0.01em;
+    }
+    .info-text {
+      font-size: 1.15rem;
+      color: #232b36;
+      opacity: 0.97;
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+    .cinema-container {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px #eaf0ff44;
+      padding: 40px 24px 32px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto 64px auto;
+      position: relative;
+      z-index: 3;
+    }
+    .cinema-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: #ffd700;
+      text-align: center;
+    }
+    video {
+      width: 100%;
+      max-width: 720px;
+      border-radius: 14px;
+      box-shadow: 0 2px 16px #0002;
+      background: #000;
+      margin-bottom: 18px;
+    }
+    .video-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      max-width: 720px;
+      margin-bottom: 8px;
+    }
+    .play-btn {
+      background: #ffd700;
+      color: #232b36;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .play-btn:hover {
+      background: #ffe066;
+    }
+    .seek-bar {
+      flex: 1;
+      height: 6px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      position: relative;
+      cursor: pointer;
+      margin: 0 8px;
+    }
+    .seek-progress {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: #ffd700;
+      border-radius: 4px;
+      width: 0%;
+      pointer-events: none;
+      transition: width 0.2s;
+    }
+    .time-label {
+      font-size: 1rem;
+      color: #393939;
+      min-width: 60px;
+      text-align: right;
+    }
+    @media (max-width: 900px) {
+      .hero-title { font-size: 2.1rem; }
+      .info-section, .cinema-container { padding: 18px 6px; }
+      .cinema-title { font-size: 1.3rem; }
+      video, .video-controls { max-width: 98vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-wrapper">
+    <div class="hero-section">
+      <div class="hero-title">DAS DUNKLE GEHEIMNIS</div>
+      <div class="hero-desc">Ein Film voller Spannung, Geheimnisse und unerwarteter Wendungen. Tauche ein in die dunkle Welt des Unbekannten.<br>Scrolle nach unten für mehr Infos und den Stream!</div>
+      <button class="stream-btn" id="scrollToStream">Jetzt streamen</button>
+    </div>
+    <div class="info-section">
+      <div class="info-title">Über den Film</div>
+      <div class="info-text" id="movieInfoText">Das dunkle Geheimnis ist ein Schulprojekt der Schüler Anton, Malo, Kjell und Maximilian. Er wurde im Rahmen des Kunstunterrichts erstellt, nach der beendigung stellte sich nur heraus dass dieser Rahmen gesprengt wurde. Das dunkle Geheimnis ist ein absoluter Hit der für mehr als nur den Kunstunterricht bestimmt ist.</div>
+      <div class="info-title">Besetzung & Produktion</div>
+      <div class="info-text">Der Gesamte Cast sowie alle Credits sind am Ende des Filmes zu sehen</div>
+      <div class="info-title">Trivia & Fun Facts</div>
+      <div class="info-text">Der Film hatte ursprünglich eine ganz andere Geschichte, jedoch stellte sich schnell heraus dass vieles dort schlecht umgesetzt werden konnte. Schließlich gelang es trotzdem eine fesselnde Geschichte zu verfilmen</div>
+    </div>
+    <div class="cinema-container" id="cinemaStream">
+      <div class="cinema-title">Stream: DAS DUNKLE GEHEIMNIS</div>
+      <video id="movie" src="0816.mp4" controls poster="film-poster.jpg" style="background:#000;max-width:100%;border-radius:14px;box-shadow:0 2px 16px #0002;display:block;"></video>
+      <div class="video-controls" style="display:none;">
+        <!-- Custom controls werden ausgeblendet, native Controls sind aktiv -->
+      </div>
+    </div>
+  </div>
+  <script>
+    const video = document.getElementById('movie');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const seekBar = document.getElementById('seekBar');
+    const seekProgress = document.getElementById('seekProgress');
+    const timeLabel = document.getElementById('timeLabel');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const scrollToStreamBtn = document.getElementById('scrollToStream');
+    const cinemaStream = document.getElementById('cinemaStream');
+
+    function formatTime(s) {
+      s = Math.floor(s);
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return m + ':' + (sec < 10 ? '0' : '') + sec;
+    }
+
+    function updateTime() {
+      timeLabel.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration || 0);
+      const percent = video.duration ? (video.currentTime / video.duration) * 100 : 0;
+      seekProgress.style.width = percent + '%';
+    }
+
+    playPauseBtn.addEventListener('click', function() {
+      if (video.paused) {
+        video.play();
+        playPauseBtn.textContent = 'Pause';
+      } else {
+        video.pause();
+        playPauseBtn.textContent = 'Play';
+      }
+    });
+
+    video.addEventListener('play', function() {
+      playPauseBtn.textContent = 'Pause';
+    });
+    video.addEventListener('pause', function() {
+      playPauseBtn.textContent = 'Play';
+    });
+    video.addEventListener('timeupdate', updateTime);
+    video.addEventListener('loadedmetadata', updateTime);
+
+    seekBar.addEventListener('click', function(e) {
+      const rect = seekBar.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const percent = x / rect.width;
+      video.currentTime = percent * video.duration;
+    });
+
+    fullscreenBtn.addEventListener('click', function() {
+      if (video.requestFullscreen) {
+        video.requestFullscreen();
+      } else if (video.webkitRequestFullscreen) {
+        video.webkitRequestFullscreen();
+      } else if (video.msRequestFullscreen) {
+        video.msRequestFullscreen();
+      }
+    });
+
+    scrollToStreamBtn.addEventListener('click', function() {
+      cinemaStream.scrollIntoView({ behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>
