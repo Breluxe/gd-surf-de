@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8">
+<!-- saved from url=(0019)https://gd-surf.de/ -->
+<html lang="de"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ISurf</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="./ISurf_files/css2" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
@@ -55,10 +55,10 @@
       gap: 24px;
     }
     .main-section {
-      min-height: 600px;
-      min-width: 800px;
-      position: relative;
-      overflow: hidden;
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
     }
     .main-row {
       display: flex;
@@ -66,12 +66,16 @@
       gap: 18px;
     }
     .tab-box {
-      position: relative;
-      transition: box-shadow 0.2s;
-      width: 320px;
-      height: 120px;
-      margin: 0 12px 12px 0;
-      box-sizing: border-box;
+      background: #181c22;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 0;
+      margin-bottom: 0;
+      border: 1.5px solid #393939;
+      min-width: 320px;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
     }
     .tab-header {
       display: flex;
@@ -428,17 +432,6 @@
       margin-top: 8px;
       font-size: 1.05rem;
     }
-    .widget-resizer {
-      display: none !important;
-    }
-    .tab-box.dragging {
-      opacity: 0.5;
-      box-shadow: 0 0 24px #7bb1ff44;
-    }
-    .tab-box.drag-over {
-      outline: 2px dashed #ffd700;
-      background: #232b3622;
-    }
   </style>
 </head>
 <body>
@@ -451,32 +444,31 @@
       <div class="user-dropdown">▼</div>
     </div>
     <div class="search-box">
-      <input class="search-input" type="text" placeholder="Module filtern..." />
+      <input class="search-input" type="text" placeholder="Module filtern...">
     </div>
     <div class="nav-divider">
       <span>Schnellzugriff</span>
       <span class="edit-icon" title="Schnellzugriff bearbeiten">✏️</span>
     </div>
     <ul class="nav-list">
-      <li class="nav-item"><a href="wordfall.html" style="display:flex;align-items:center;text-decoration:none;color:inherit;"><span class="emoji">👾</span><span class="item-label">Wordfall</span></a></li>
-      <li class="nav-item"><a href="cinema.html" style="display:flex;align-items:center;text-decoration:none;color:inherit;"><span class="emoji">🎬</span><span class="item-label">Kino</span></a></li>
+      <li class="nav-item"><a href="https://gd-surf.de/wordfall.html" style="display:flex;align-items:center;text-decoration:none;color:inherit;"><span class="emoji">👾</span><span class="item-label">Wordfall</span></a></li>
       <li class="nav-item"><span class="emoji">💬</span><span class="item-label">Messenger</span></li>
       <li class="nav-item"><span class="emoji">📝</span><span class="item-label">Aufgaben</span></li>
     </ul>
-    <hr class="nav-separator" />
+    <hr class="nav-separator">
     <ul class="nav-list">
       <li class="nav-item"><span class="emoji">🦉</span><span class="item-label">Eduplaces</span></li>
     </ul>
-    <hr class="nav-separator" />
+    <hr class="nav-separator">
     <div class="all-modules-row" id="all-modules-toggle">
       <span>Alle Module</span>
       <span class="badge"></span>
-      <span class="arrow">&#8250;</span>
+      <span class="arrow">›</span>
     </div>
     <div class="all-modules-list" id="all-modules-list">
       <div class="nav-item"><span class="emoji">📒</span><span class="item-label">Adressbuch</span></div>
       <div class="nav-item"><span class="emoji">📚</span><span class="item-label">Bücherei</span></div>
-      <div class="nav-item"><span class="emoji">📁</span><a href="dateien.html" style="color:inherit;text-decoration:none;display:flex;align-items:center;"><span class="item-label">Dateien</span></a></div>
+      <div class="nav-item"><span class="emoji">📁</span><a href="https://gd-surf.de/dateien.html" style="color:inherit;text-decoration:none;display:flex;align-items:center;"><span class="item-label">Dateien</span></a></div>
       <div class="nav-item"><span class="emoji">🖨️</span><span class="item-label">Drucken</span></div>
       <div class="nav-item"><span class="emoji">✉️</span><span class="item-label">E-Mail</span></div>
       <div class="nav-item"><span class="emoji">🗂️</span><span class="item-label">Edupool</span></div>
@@ -500,39 +492,39 @@
       <div class="nav-item"><span class="emoji">🗓️</span><span class="item-label">WebUntis</span></div>
     </div>
     <div class="impressum">Impressum</div>
-    <div class="version-info" style="position:fixed;left:18px;bottom:10px;font-size:0.98rem;color:#7bb1ff;opacity:0.85;z-index:120;user-select:none;">ISurf v1.2.0 &ndash; 23.06.2025</div>
+    <div class="version-info" style="position:fixed;left:18px;bottom:10px;font-size:0.98rem;color:#7bb1ff;opacity:0.85;z-index:120;user-select:none;">ISurf v1.2.0 – 23.06.2025</div>
   </div>
   <div class="sidebar-separator"></div>
   <div class="main-content">
-    <div class="main-section" id="mainSection">
-      <div class="tab-box speicherplatz" draggable="true" data-widget="speicherplatz" style="width:320px;height:120px;">
+    <div class="main-section">
+      <div class="tab-box speicherplatz">
         <div class="tab-header"><span class="emoji">🗂️</span>Speicherplatz</div>
         <div class="tab-content"></div>
       </div>
-      <div class="tab-box email" draggable="true" data-widget="email" style="width:320px;height:120px;">
+      <div class="tab-box email">
         <div class="tab-header"><span class="emoji">✉️</span>E-Mail</div>
         <div class="tab-content"></div>
       </div>
-      <div class="tab-box aufgaben" draggable="true" data-widget="aufgaben" style="width:320px;height:120px;">
+      <div class="tab-box aufgaben">
         <div class="tab-header"><span class="emoji">📝</span>Aufgaben</div>
         <div class="tab-content" id="aufgaben-content">
           <div class="quest-module">
             <div class="quest-title">Wordfall: Besiege 20 Bosse!</div>
-            <div class="quest-desc">Besiege insgesamt 20 Bosse im <a href="wordfall.html" style="color:#7bb1ff;text-decoration:underline;">Wordfall</a>-Spiel.</div>
+            <div class="quest-desc">Besiege insgesamt 20 Bosse im <a href="https://gd-surf.de/wordfall.html" style="color:#7bb1ff;text-decoration:underline;">Wordfall</a>-Spiel.</div>
             <div class="quest-progressbar">
-              <div class="quest-progress" id="boss-progress-bar"></div>
-              <span class="quest-progress-text" id="boss-progress-text">0 / 20</span>
+              <div class="quest-progress" id="boss-progress-bar" style="width: 100%;"></div>
+              <span class="quest-progress-text" id="boss-progress-text">20 / 20</span>
             </div>
-            <div class="quest-done" id="boss-task-done" style="display:none;">Aufgabe abgeschlossen! 🎉</div>
+            <div class="quest-done" id="boss-task-done" style="display: block;">Aufgabe abgeschlossen! 🎉</div>
           </div>
           <!-- Hier können weitere quest-module hinzugefügt werden -->
         </div>
       </div>
-      <div class="tab-box news" draggable="true" data-widget="news" style="width:320px;height:120px;">
+      <div class="tab-box news">
         <div class="tab-header"><span class="emoji">📰</span>News</div>
         <div class="tab-content">
           <div class="news-title">gd-surf.de ist jetzt online!</div>
-          <div class="news-date">19.06.2025 &bull; Team gd-surf.de</div>
+          <div class="news-date">19.06.2025 • Team gd-surf.de</div>
           <div class="news-body">
             Wir freuen uns, den offiziellen Start unserer neuen Website <span class="news-highlight">gd-surf.de</span> bekanntzugeben!<br><br>
             Hier findest du nicht nur aktuelle Infos rund um unsere Website, sondern kannst auch in deiner Freizeit <span class="news-highlight">coole Minispiele</span> direkt im Browser spielen, Neues entdecken und Spaß haben.<br><br>
@@ -581,59 +573,6 @@
     window.addEventListener('storage', function(e) {
       if (e.key === 'wordfall_bosses') updateBossTask();
     });
-    // Ursprüngliches Drag & Drop für Widgets (ohne Flexbox, ohne Resizing)
-    const mainSection = document.getElementById('mainSection');
-    let dragSrc = null;
-    let widgetOrder = [];
-    function saveWidgetOrder() {
-      widgetOrder = Array.from(mainSection.children).map(w => w.dataset.widget);
-      localStorage.setItem('widgetOrder', JSON.stringify(widgetOrder));
-    }
-    function loadWidgetOrder() {
-      const order = JSON.parse(localStorage.getItem('widgetOrder') || 'null');
-      if (!order) return;
-      order.forEach(id => {
-        const el = mainSection.querySelector(`[data-widget="${id}"]`);
-        if (el) mainSection.appendChild(el);
-      });
-    }
-    window.addEventListener('DOMContentLoaded', () => {
-      loadWidgetOrder();
-    });
-    mainSection.addEventListener('dragstart', function(e) {
-      if (e.target.classList.contains('tab-box')) {
-        dragSrc = e.target;
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', dragSrc.dataset.widget);
-        setTimeout(() => dragSrc.classList.add('dragging'), 0);
-      }
-    });
-    mainSection.addEventListener('dragend', function(e) {
-      if (dragSrc) dragSrc.classList.remove('dragging');
-      dragSrc = null;
-      saveWidgetOrder();
-    });
-    mainSection.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      const target = e.target.closest('.tab-box');
-      if (target && target !== dragSrc) {
-        target.classList.add('drag-over');
-      }
-    });
-    mainSection.addEventListener('dragleave', function(e) {
-      const target = e.target.closest('.tab-box');
-      if (target) target.classList.remove('drag-over');
-    });
-    mainSection.addEventListener('drop', function(e) {
-      e.preventDefault();
-      const target = e.target.closest('.tab-box');
-      if (dragSrc && target && dragSrc !== target) {
-        target.classList.remove('drag-over');
-        mainSection.insertBefore(dragSrc, target.nextSibling);
-        saveWidgetOrder();
-      }
-    });
   </script>
-</body>
-</html>
+
+</body></html>
