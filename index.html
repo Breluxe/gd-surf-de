@@ -55,10 +55,10 @@
       gap: 24px;
     }
     .main-section {
-      flex: 2;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
+      min-height: 600px;
+      min-width: 800px;
+      position: relative;
+      overflow: hidden;
     }
     .main-row {
       display: flex;
@@ -66,16 +66,12 @@
       gap: 18px;
     }
     .tab-box {
-      background: #181c22;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      padding: 0;
-      margin-bottom: 0;
-      border: 1.5px solid #393939;
-      min-width: 320px;
-      min-height: 60px;
-      display: flex;
-      flex-direction: column;
+      position: relative;
+      transition: box-shadow 0.2s;
+      width: 320px;
+      height: 120px;
+      margin: 0 12px 12px 0;
+      box-sizing: border-box;
     }
     .tab-header {
       display: flex;
@@ -432,6 +428,17 @@
       margin-top: 8px;
       font-size: 1.05rem;
     }
+    .widget-resizer {
+      display: none !important;
+    }
+    .tab-box.dragging {
+      opacity: 0.5;
+      box-shadow: 0 0 24px #7bb1ff44;
+    }
+    .tab-box.drag-over {
+      outline: 2px dashed #ffd700;
+      background: #232b3622;
+    }
   </style>
 </head>
 <body>
@@ -497,16 +504,16 @@
   </div>
   <div class="sidebar-separator"></div>
   <div class="main-content">
-    <div class="main-section">
-      <div class="tab-box speicherplatz">
+    <div class="main-section" id="mainSection">
+      <div class="tab-box speicherplatz" draggable="true" data-widget="speicherplatz" style="width:320px;height:120px;">
         <div class="tab-header"><span class="emoji">🗂️</span>Speicherplatz</div>
         <div class="tab-content"></div>
       </div>
-      <div class="tab-box email">
+      <div class="tab-box email" draggable="true" data-widget="email" style="width:320px;height:120px;">
         <div class="tab-header"><span class="emoji">✉️</span>E-Mail</div>
         <div class="tab-content"></div>
       </div>
-      <div class="tab-box aufgaben">
+      <div class="tab-box aufgaben" draggable="true" data-widget="aufgaben" style="width:320px;height:120px;">
         <div class="tab-header"><span class="emoji">📝</span>Aufgaben</div>
         <div class="tab-content" id="aufgaben-content">
           <div class="quest-module">
@@ -521,7 +528,7 @@
           <!-- Hier können weitere quest-module hinzugefügt werden -->
         </div>
       </div>
-      <div class="tab-box news">
+      <div class="tab-box news" draggable="true" data-widget="news" style="width:320px;height:120px;">
         <div class="tab-header"><span class="emoji">📰</span>News</div>
         <div class="tab-content">
           <div class="news-title">gd-surf.de ist jetzt online!</div>
@@ -573,6 +580,59 @@
     });
     window.addEventListener('storage', function(e) {
       if (e.key === 'wordfall_bosses') updateBossTask();
+    });
+    // Ursprüngliches Drag & Drop für Widgets (ohne Flexbox, ohne Resizing)
+    const mainSection = document.getElementById('mainSection');
+    let dragSrc = null;
+    let widgetOrder = [];
+    function saveWidgetOrder() {
+      widgetOrder = Array.from(mainSection.children).map(w => w.dataset.widget);
+      localStorage.setItem('widgetOrder', JSON.stringify(widgetOrder));
+    }
+    function loadWidgetOrder() {
+      const order = JSON.parse(localStorage.getItem('widgetOrder') || 'null');
+      if (!order) return;
+      order.forEach(id => {
+        const el = mainSection.querySelector(`[data-widget="${id}"]`);
+        if (el) mainSection.appendChild(el);
+      });
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      loadWidgetOrder();
+    });
+    mainSection.addEventListener('dragstart', function(e) {
+      if (e.target.classList.contains('tab-box')) {
+        dragSrc = e.target;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', dragSrc.dataset.widget);
+        setTimeout(() => dragSrc.classList.add('dragging'), 0);
+      }
+    });
+    mainSection.addEventListener('dragend', function(e) {
+      if (dragSrc) dragSrc.classList.remove('dragging');
+      dragSrc = null;
+      saveWidgetOrder();
+    });
+    mainSection.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const target = e.target.closest('.tab-box');
+      if (target && target !== dragSrc) {
+        target.classList.add('drag-over');
+      }
+    });
+    mainSection.addEventListener('dragleave', function(e) {
+      const target = e.target.closest('.tab-box');
+      if (target) target.classList.remove('drag-over');
+    });
+    mainSection.addEventListener('drop', function(e) {
+      e.preventDefault();
+      const target = e.target.closest('.tab-box');
+      if (dragSrc && target && dragSrc !== target) {
+        target.classList.remove('drag-over');
+        mainSection.insertBefore(dragSrc, target.nextSibling);
+        saveWidgetOrder();
+      }
     });
   </script>
 </body>
