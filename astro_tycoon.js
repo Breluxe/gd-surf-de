@@ -58,6 +58,9 @@
 		$("#clickPowerLabel").textContent = "+" + fmt(state.clickPower + Math.floor(state.autoClick>0? state.clickPower*0.2 : 0));
 		renderStats();
 		renderTab(activeTab);
+		// ensure animated counter sync
+		lastDisplayedCredits = Math.floor(state.credits);
+		animateCounter(state.credits);
 	}
 
 	function renderStats(){
@@ -242,7 +245,10 @@
 		const gain = state.clickPower * state.coreMultiplier * (state.overclock.active? 2 : 1);
 		spawnFloat(`+${fmt(gain)}`);
 		addCredits(gain);
-		render();
+		// Avoid full render to prevent rebuilding tab DOM and replaying entrance animations.
+		// Update only header/stats and button states.
+		renderStats();
+		updateButtonStates();
 	});
 
 	function bindTabs(){
@@ -319,6 +325,21 @@
 			const str = localStorage.getItem(STORAGE_KEY);
 			if (str) Object.assign(state, JSON.parse(str));
 		}catch(e){ console.warn("Load failed", e)}
+	}
+
+	// Restore default definitions (functions/effects) after load/reset
+	function hydrateDefaults(){
+		// buildings
+		if (!state.buildings) state.buildings = {};
+		state.buildings.spaceport = state.buildings.spaceport || {name:"Spaceport", base:150, count:0, cost: 4200, scale:1.17, desc:"Interstellare Händler docken an.", prestigeScale:1.0};
+		// upgrades (restore effect functions)
+		if (!state.upgrades) state.upgrades = {};
+		state.upgrades.turbo = state.upgrades.turbo || {name:"Auto-Harvester", desc:"+20% CPS & automatisches Klicken", cost: 900, bought:false, effect: s=>{s.autoClick=1}};
+		// research
+		if (!state.research) state.research = {};
+		state.research.bulk = state.research.bulk || {name:"Massenkauf", desc:"Kaufe x10 Gebäude", cost: 800, bought:false};
+		// Ensure effect functions exist (in case they were stripped by JSON)
+		if (state.upgrades.turbo && typeof state.upgrades.turbo.effect !== 'function') state.upgrades.turbo.effect = s=>{s.autoClick=1};
 	}
 
 	function doPrestige(gain){
@@ -437,10 +458,41 @@
 		}, 1400);
 	}
 
-	init();
-	window.onload = function() {
-		if (typeof init === 'function') {
-			init();
+	// run init once after hydrate
+	hydrateDefaults();
+
+	// credit display animation helpers (inside IIFE scope)
+	let lastDisplayedCredits = Math.floor(state.credits || 0);
+	function animateCounter(target){
+		const el = document.getElementById('credits');
+		if(!el) return;
+		const start = lastDisplayedCredits || 0;
+		const end = Math.floor(target);
+		const dur = 400;
+		const startT = performance.now();
+		function step(t){
+			const p = Math.min(1,(t-startT)/dur);
+			const cur = Math.floor(start + (end-start) * (1 - Math.pow(1-p,3)));
+			el.textContent = fmt(cur);
+			if(p<1) requestAnimationFrame(step);
+			else lastDisplayedCredits = end;
 		}
+		requestAnimationFrame(step);
+	}
+
+	// patch addCredits to trigger pulse (keeps original behavior)
+	const _origAddCredits = addCredits;
+	addCredits = function(x){
+		if (x<=0) return;
+		_origAddCredits(x);
+		const pill = document.querySelector('.credits-pill');
+		if(pill){
+			pill.classList.remove('pulse');
+			void pill.offsetWidth;
+			pill.classList.add('pulse');
+		}
+		animateCounter(state.credits);
 	};
-})();
+
+	init();
+	})();

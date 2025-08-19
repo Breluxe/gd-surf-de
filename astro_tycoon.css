@@ -79,6 +79,18 @@ header{
 .totals{ display:flex; gap:18px; flex-wrap:wrap; align-items:center }
 .pill{ padding:8px 12px; background: linear-gradient(180deg, #1e2a57, #12203f); border:1px solid #2a3e88; border-radius: 999px; box-shadow: var(--glow); font-weight:600; color:var(--text) }
 .pill small{ display:block; font-size:11px; color:var(--muted); font-weight:500 }
+
+/* Prominent, centered credits pill */
+.credits-pill{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 20px; background: linear-gradient(90deg,#6cf3ff,#8a7dff); color:#081022; padding:12px 18px; font-size:18px; border-radius:14px; box-shadow: 0 10px 30px rgba(108,243,255,.18); }
+.credits-pill small{ color: rgba(10,18,34,0.6); font-weight:700 }
+.credits-pill #credits{ font-size:28px; font-weight:900; color:#081022; text-shadow: 0 6px 22px rgba(12,30,60,0.28); transition: transform .25s cubic-bezier(.2,.9,.25,1), filter .25s; }
+/* Pulse animation when credits change */
+@keyframes creditPulse { 0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(108,243,255,0)); }
+  40% { transform: scale(1.08); filter: drop-shadow(0 12px 40px rgba(108,243,255,0.18)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(108,243,255,0)); }
+}
+.credits-pill.pulse { animation: creditPulse .6s ease forwards; }
+.totals{ justify-content:center }
 .controls{ display:flex; gap:8px; flex-wrap:wrap }
 
 .btn{ padding:10px 14px; border-radius:12px; border:1px solid #3951a6; background: linear-gradient(180deg, #2b3fa0, #1b2a66); color:white; font-weight:700; letter-spacing:.3px; box-shadow: var(--glow); cursor:pointer; transition: transform .08s ease, filter .2s ease, opacity .2s; user-select:none; }
