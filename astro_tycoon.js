@@ -23,6 +23,7 @@
 		credits: 0,
 		totalEarned: 0,
 		clickPower: 1,
+		priceDiscount: 1,
 		coreMultiplier: 1,
 		cores: 0,
 		prestigeLevel: 0,
@@ -45,10 +46,38 @@
 
 	const STORAGE_KEY = "astro_tycoon_save_v1";
 
+// autofire 100/s state
+let autoClick100Id = null;
+let autoClick100Active = false;
+
 	/* ---------- Rendering ---------- */
 	const content = $("#tabContent");
 	const tabs = $$(".tab");
 	let activeTab = "buildings";
+
+	/* Canonical definitions — UI and effect functions live here so saved JSON can't remove them */
+	const DEFINITIONS = {
+		buildings: {
+			spaceport: {name:"Spaceport", base:150, desc:"Interstellare Händler docken an.", cost:4200, scale:1.17},
+			miner: {name:"Astro-Miner", base:30, desc:"Miners extrahieren Stardust.", cost:120, scale:1.14},
+			refinery: {name:"Refinery", base:750, desc:"Veredelt Rohstoffe.", cost:5000, scale:1.18}
+		},
+			upgrades: {
+				turbo: {name:"Auto-Harvester", desc:"+20% CPS & automatisches Klicken", cost: 900, effect: s=>{s.autoClick=1}},
+				overdrive: {name:"Overdrive Module", desc:"+1 Klickstärke", cost: 2500, effect: s=>{s.clickPower += 1}},
+				coreflux: {name:"Coreflux", desc:"Erhöht Core-Multiplikator leicht", cost: 8000, effect: s=>{s.coreMultiplier *= 1.05}},
+				optics: {name:"Quantum Optics", desc:"+10% buildings efficiency", cost: 1200, effect: s=>{s.coreMultiplier *= 1.1}},
+				automation: {name:"Automation Suite", desc:"+50% Auto-Click", cost: 2200, effect: s=>{s.autoClick = (s.autoClick||0)+1}},
+				alloy: {name:"Neon Alloy", desc:"Gebäude kosten leicht weniger", cost: 3400, effect: s=>{s.priceDiscount *= 0.95}},
+				fluxCap: {name:"Flux Capacitor", desc:"Kurzzeit-Overclock aktivierbar", cost: 6000, effect: s=>{/* unlocks overclock usage */}},
+				quantumBus: {name:"Quantum Bus", desc:"+25% CPS global", cost: 12000, effect: s=>{s.coreMultiplier *= 1.25}},
+				sentinel: {name:"Sentinel AI", desc:"Erhöht ClickPower & CPS leicht", cost: 18000, effect: s=>{s.clickPower += 2; s.coreMultiplier *= 1.02}},
+				genesis: {name:"Genesis Core", desc:"Großer permanenter Boost", cost: 50000, effect: s=>{s.coreMultiplier *= 1.5}}
+			},
+		research: {
+			bulk: {name:"Massenkauf", desc:"Kaufe x10 Gebäude", cost: 800}
+		}
+	};
 
 	function render(){
 		$("#credits").textContent = fmt(state.credits);
@@ -79,30 +108,32 @@
 		activeTab = tab;
 		tabs.forEach(t=> t.classList.toggle("active", t.dataset.tab===tab));
 		if (tab==="buildings"){
-			// Gebäude-Panel anzeigen
 			let html = '<div class="panel grid">';
-			for(const key in state.buildings){
-				const b = state.buildings[key];
-				const price = nextCost(b);
-				html += `<div class="item"><h3>${b.name}</h3><div class="desc">${b.desc}</div><div class="row"><span class="price">${fmt(price)} Credits</span><span class="level">Level ${b.count}</span></div><button class="buy" data-buy="${key}" ${state.credits<price?'disabled':''}>Kaufen</button></div>`;
+			for(const key in DEFINITIONS.buildings){
+				const def = DEFINITIONS.buildings[key];
+				const b = state.buildings[key] || {count:0,cost:def.cost};
+				const price = nextCost(Object.assign({}, def, b));
+				html += `<div class="item"><h3>${def.name}</h3><div class="desc">${def.desc}</div><div class="row"><span class="price">${fmt(price)} Credits</span><span class="level">Level ${b.count}</span></div><button class="buy" data-buy="${key}" ${state.credits<price?'disabled':''}>Kaufen</button></div>`;
 			}
 			html += '</div>';
 			content.innerHTML = html;
 			bindBuildingButtons();
 		} else if (tab==="upgrades"){
 			let html = '<div class="panel grid">';
-			for(const key in state.upgrades){
-				const u = state.upgrades[key];
-				html += `<div class="item"><h3>${u.name}</h3><div class="desc">${u.desc}</div><div class="row"><span class="price">${fmt(u.cost)} Credits</span><span class="level">${u.bought?'Gekauft':'Nicht gekauft'}</span></div><button class="buy" data-upgrade="${key}" ${state.credits<u.cost||u.bought?'disabled':''}>Kaufen</button></div>`;
+			for(const key in DEFINITIONS.upgrades){
+				const def = DEFINITIONS.upgrades[key];
+				const u = state.upgrades[key] || {bought:false, cost:def.cost};
+				html += `<div class="item upgrade"><div class="icon">🔧</div><div style="flex:1"><h3>${def.name} <span class=\"bought-badge\">${u.bought? '✓' : ''}</span></h3><div class=\"desc\">${def.desc}</div></div><div class=\"row\"><span class=\"price\">${fmt(u.cost)} Credits</span><button class=\"buy\" data-upgrade=\"${key}\" ${u.bought||state.credits<u.cost?'disabled':''}>Kaufen</button></div></div>`;
 			}
 			html += '</div>';
 			content.innerHTML = html;
 			bindUpgradeButtons();
 		} else if (tab==="research"){
 			let html = '<div class="panel grid">';
-			for(const key in state.research){
-				const r = state.research[key];
-				html += `<div class="item"><h3>${r.name}</h3><div class="desc">${r.desc}</div><div class="row"><span class="price">${fmt(r.cost)} Credits</span><span class="level">${r.bought?'Gekauft':'Nicht gekauft'}</span></div><button class="buy" data-research="${key}" ${state.credits<r.cost||r.bought?'disabled':''}>Kaufen</button></div>`;
+			for(const key in DEFINITIONS.research){
+				const def = DEFINITIONS.research[key];
+				const r = state.research[key] || {bought:false, cost:def.cost};
+				html += `<div class="item"><h3>${def.name}</h3><div class="desc">${def.desc}</div><div class="row"><span class="price">${fmt(r.cost)} Credits</span><span class="level">${r.bought?'Gekauft':'Nicht gekauft'}</span></div><button class="buy" data-research="${key}" ${r.bought||state.credits<r.cost?'disabled':''}>Kaufen</button></div>`;
 			}
 			html += '</div>';
 			content.innerHTML = html;
@@ -150,7 +181,8 @@
 	function nextCost(b){
 		// Prestige-Preissteigerung
 		const prestigeScale = 1 + (state.prestigeLevel * 0.15);
-		return Math.floor(b.cost * Math.pow(b.scale * prestigeScale, b.count));
+		const discount = state.priceDiscount || 1;
+		return Math.floor((b.cost * discount) * Math.pow(b.scale * prestigeScale, b.count));
 	}
 	function prestigeGain(){
 		// Square root of total earned / 10k
@@ -159,34 +191,45 @@
 
 	/* ---------- Buying ---------- */
 	function buyBuilding(key, qty=1){
+		state.buildings[key] = state.buildings[key] || {count:0};
 		const b = state.buildings[key];
 		let bought = 0;
 		for (let i=0;i<qty;i++){
-			const price = nextCost(b);
+			const def = DEFINITIONS.buildings[key];
+			const price = nextCost(Object.assign({}, def, b));
 			if (state.credits >= price){
 				state.credits -= price;
 				b.count++;
 				bought++;
 			}
 		}
-		if (bought>0) render();
+		if (bought>0){ renderStats(); updateButtonStates(); saveGame(); }
 	}
 	function buyUpgrade(key){
+		state.upgrades[key] = state.upgrades[key] || {bought:false};
 		const u = state.upgrades[key];
+		const def = DEFINITIONS.upgrades[key];
 		if (u.bought) return;
 		if (u.req && !u.req(state)) return;
-		if (state.credits < u.cost) return;
-		state.credits -= u.cost;
+		const cost = u.cost || def.cost;
+		if (state.credits < cost) return;
+		state.credits -= cost;
 		u.bought = true;
-		u.effect && u.effect(state);
-		render();
+		// ensure effect exists and apply
+		if (def.effect) def.effect(state);
+		// add visual class to body to reflect upgrade
+		try{ document.body.classList.add('upg-'+key); }catch(e){}
+		renderStats(); updateButtonStates(); saveGame();
 	}
 	function buyResearch(key){
+		state.research[key] = state.research[key] || {bought:false};
 		const r = state.research[key];
-		if (r.bought || state.credits < r.cost) return;
-		state.credits -= r.cost;
+		const def = DEFINITIONS.research[key];
+		const cost = r.cost || def.cost;
+		if (r.bought || state.credits < cost) return;
+		state.credits -= cost;
 		r.bought = true;
-		render();
+		renderStats(); updateButtonStates(); saveGame();
 	}
 
 	/* ---------- Ticking ---------- */
@@ -241,15 +284,35 @@
 	}
 
 	/* ---------- Events ---------- */
-	$("#harvestBtn").addEventListener("click", () => {
+	// Harvest action factored so autofire can reuse it
+	function doHarvest() {
 		const gain = state.clickPower * state.coreMultiplier * (state.overclock.active? 2 : 1);
-		spawnFloat(`+${fmt(gain)}`);
+		// throttle visuals during autofire to avoid DOM thrash
+		if (!autoClick100Active || (autoClick100Active && Math.random() < 0.25)) {
+			spawnFloat(`+${fmt(gain)}`);
+		}
 		addCredits(gain);
 		// Avoid full render to prevent rebuilding tab DOM and replaying entrance animations.
 		// Update only header/stats and button states.
 		renderStats();
 		updateButtonStates();
-	});
+	}
+
+	$("#harvestBtn").addEventListener("click", () => doHarvest());
+
+	// autofire 100Hz toggle
+	function toggleAutoClick100(){
+		if (autoClick100Id){
+			clearInterval(autoClick100Id);
+			autoClick100Id = null;
+			autoClick100Active = false;
+		} else {
+			autoClick100Active = true;
+			const b = $("#autoClick100Btn"); if (b) { b.classList.add('active'); b.textContent = 'Stop Autoklick'; }
+			autoClick100Id = setInterval(()=>{ doHarvest(); }, 10);
+		}
+	}
+	const autoBtn = $("#autoClick100Btn"); if (autoBtn) autoBtn.addEventListener('click', toggleAutoClick100);
 
 	function bindTabs(){
 		tabs.forEach(t => {
@@ -280,6 +343,21 @@
 			location.reload();
 		}
 	});
+	$("#clearCacheBtn").addEventListener("click", async () => {
+        if (!confirm('Cache löschen und Spiel neu starten?')) return;
+        try {
+            // remove game save
+            localStorage.removeItem(STORAGE_KEY);
+            // attempt to unregister service workers if any
+            if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for (const r of regs) await r.unregister();
+            }
+        } catch(e){ console.warn('Cache clear failed', e) }
+        // hydrate defaults then reload to ensure UI rebuilds correctly
+        hydrateDefaults();
+        location.reload();
+    });
 	$("#prestigeBtn").addEventListener("click", () => {
 		const gain = prestigeGain();
 		if (gain<=0) return alert("Sammle mehr Credits für Prestige!");
@@ -323,23 +401,35 @@
 	function loadGame(){
 		try{
 			const str = localStorage.getItem(STORAGE_KEY);
-			if (str) Object.assign(state, JSON.parse(str));
+			if (str) {
+				const saved = JSON.parse(str);
+				// merge saved minimal properties into state, but keep DEFINITIONS as canonical
+				Object.assign(state, saved);
+			}
 		}catch(e){ console.warn("Load failed", e)}
 	}
 
 	// Restore default definitions (functions/effects) after load/reset
 	function hydrateDefaults(){
-		// buildings
-		if (!state.buildings) state.buildings = {};
-		state.buildings.spaceport = state.buildings.spaceport || {name:"Spaceport", base:150, count:0, cost: 4200, scale:1.17, desc:"Interstellare Händler docken an.", prestigeScale:1.0};
-		// upgrades (restore effect functions)
-		if (!state.upgrades) state.upgrades = {};
-		state.upgrades.turbo = state.upgrades.turbo || {name:"Auto-Harvester", desc:"+20% CPS & automatisches Klicken", cost: 900, bought:false, effect: s=>{s.autoClick=1}};
-		// research
-		if (!state.research) state.research = {};
-		state.research.bulk = state.research.bulk || {name:"Massenkauf", desc:"Kaufe x10 Gebäude", cost: 800, bought:false};
-		// Ensure effect functions exist (in case they were stripped by JSON)
-		if (state.upgrades.turbo && typeof state.upgrades.turbo.effect !== 'function') state.upgrades.turbo.effect = s=>{s.autoClick=1};
+		// ensure structure exists
+		state.buildings = state.buildings || {};
+		state.upgrades = state.upgrades || {};
+		state.research = state.research || {};
+		// Merge definitions with saved values (count/bought)
+		for(const k in DEFINITIONS.buildings){
+			const def = DEFINITIONS.buildings[k];
+			state.buildings[k] = Object.assign({count:0, cost:def.cost, scale:def.scale, base:def.base||def.base}, state.buildings[k] || {}, {name:def.name, desc:def.desc});
+		}
+		for(const k in DEFINITIONS.upgrades){
+			const def = DEFINITIONS.upgrades[k];
+			state.upgrades[k] = Object.assign({bought:false, cost:def.cost}, state.upgrades[k] || {}, {name:def.name, desc:def.desc});
+			// ensure effect function exists
+			if (typeof def.effect === 'function') state.upgrades[k].effect = def.effect;
+		}
+		for(const k in DEFINITIONS.research){
+			const def = DEFINITIONS.research[k];
+			state.research[k] = Object.assign({bought:false, cost:def.cost}, state.research[k] || {}, {name:def.name, desc:def.desc});
+		}
 	}
 
 	function doPrestige(gain){
@@ -445,6 +535,8 @@
 	/* ---------- Init ---------- */
 	function init(){
 		loadGame();
+		// restore defaults after loading saved data so functions & missing entries exist
+		hydrateDefaults();
 		bindTabs();
 		bindSettings();
 		starfield();
@@ -458,8 +550,7 @@
 		}, 1400);
 	}
 
-	// run init once after hydrate
-	hydrateDefaults();
+
 
 	// credit display animation helpers (inside IIFE scope)
 	let lastDisplayedCredits = Math.floor(state.credits || 0);
@@ -493,6 +584,12 @@
 		}
 		animateCounter(state.credits);
 	};
+
+	// cleanup autofire on unload
+	window.addEventListener('beforeunload', ()=>{
+		if (autoClick100Id) { clearInterval(autoClick100Id); autoClick100Id = null; autoClick100Active = false; }
+		saveGame();
+	});
 
 	init();
 	})();

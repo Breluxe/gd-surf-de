@@ -28,7 +28,8 @@
     <div class="controls">
       <button class="btn" id="saveBtn">Speichern</button>
       <button class="btn secondary" id="prestigeBtn" title="Setzt Fortschritt zurück für permanente Boni">Prestige</button>
-      <button class="btn secondary" id="resetBtn">Reset</button>
+  <button class="btn secondary" id="resetBtn">Reset</button>
+  <button class="btn secondary" id="clearCacheBtn" title="Löscht Cache / ServiceWorker und startet das Spiel neu">Neu starten</button>
     </div>
   </header>
   <main>
@@ -38,6 +39,9 @@
         <div class="panel clicker">
           <div class="rate">Klicke für <b id="clickPowerLabel">+1</b> Credits</div>
           <button class="mega-button" id="harvestBtn">💠 Stardust ernten</button>
+          <div style="margin-top:10px; display:flex; gap:8px;">
+            <button class="btn" id="autoClick100Btn" title="Automatisches Klicken: 100x pro Sekunde">Autoklick 100/s</button>
+          </div>
           <div class="note">Tipp: Upgrades machen deine Klicks und Gebäude stärker.</div>
         </div>
       </div>

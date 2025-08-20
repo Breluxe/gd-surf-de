@@ -113,34 +113,28 @@ main{ display:grid; grid-template-columns: 320px 1fr; gap:14px; min-height: 0; }
 .tab.active{ background:#233168; border-color:#3a52a6; box-shadow: var(--glow) }
 .content{ padding:14px; min-height: 200px; overflow:auto; scrollbar-width: thin; color:var(--text) }
 .grid{ display:grid; gap:10px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
-.item{ background: linear-gradient(180deg, var(--card-strong), #0e1734cc); border: 1px solid #2b3f84; border-radius:16px; padding:12px; display:flex; flex-direction:column; gap:8px; position:relative; color:var(--text) }
-.item h3{ margin:0; font-size:16px }
-.item .desc{ color:var(--muted); font-size:13px }
-.item .row{ display:flex; justify-content:space-between; align-items:center }
-.price{ font-weight:800 }
-.level{ font-size:12px; color:var(--muted) }
-.buy{ padding:8px 10px; font-weight:800; border-radius:10px; border:1px solid #3a54bb; background: linear-gradient(180deg, #3850b2, #1f2f6d); cursor:pointer; color:var(--text) }
-.buy:disabled{ opacity:.5; cursor:not-allowed }
-.kicker{ font-size:12px; color:var(--good) }
-.warning{ color: var(--warn) }
-.achv{ display:flex; align-items:center; gap:10px; padding:10px; border-radius:12px; border:1px dashed #3a4d96; background:#0f1837aa }
-.achv .dot{ width:10px; height:10px; border-radius:50%; background:#3a4d96; }
-.achv.done .dot{ background: var(--good) }
-.footer{ display:flex; gap:10px; justify-content:space-between; align-items:center; padding:12px 16px; color:var(--muted); font-size:12px; }
-.linklike{ text-decoration:underline; cursor:pointer }
-.note{ font-size:12px; color:var(--muted) }
-.statline{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #2b3e82 }
-.statline:last-child{ border-bottom:none }
+.item { background: linear-gradient(90deg, #1a2548dd, #6cf3ff22); animation: itemFadeIn 1s cubic-bezier(.42,0,.58,1); }
+@keyframes itemFadeIn { from { opacity: 0; transform: scale(0.95);} to { opacity: 1; transform: scale(1);} }
+.buy { background: linear-gradient(90deg, #ffd36c 0%, #8a7dff 100%); color:#0b1020; transition: background 0.2s; }
+.buy:active { background: linear-gradient(90deg, #8a7dff 0%, #ffd36c 100%); }
+.kicker { animation: kickerPulse 2s infinite alternate; }
+@keyframes kickerPulse { 0% { color: #6cffc3;} 100% { color: #6cf3ff;} }
+.achv { animation: achvFadeIn 1s cubic-bezier(.42,0,.58,1); }
+@keyframes achvFadeIn { from { opacity: 0; transform: scale(0.95);} to { opacity: 1; transform: scale(1);} }
+/* --- Upgrade card visuals */
+.item .icon { width:36px; height:36px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; margin-right:8px; font-weight:800 }
+.item.upgrade { display:flex; align-items:center; gap:12px }
+/* Body modifiers for upgrades */
+body.upg-turbo { --accent: #6cffc3; }
+body.upg-overdrive { --accent: #ffb36c; }
+body.upg-coreflux { --accent: #c88aff; }
+body.upg-optics { --accent: #6c9fff; }
+body.upg-automation { --accent: #ffd36c; }
+body.upg-alloy { --accent: #b0ff9f; }
+body.upg-fluxCap { --accent: #9fffd3; }
+body.upg-quantumBus { --accent: #7d6cff; }
+body.upg-sentinel { --accent: #ff6c9c; }
+body.upg-genesis { --accent: #ffd36c; }
 
-/* Prevent entrance animations after initial load */
-body.ready .app { animation: none !important; }
-body.ready header { animation: none !important; }
-body.ready .title { animation: none !important; }
-body.ready .pill { animation: none !important; }
-body.ready .btn { animation: none !important; }
-body.ready .tabs { animation: none !important; }
-body.ready .card { animation: none !important; }
-body.ready .item { animation: none !important; }
-body.ready .achv { animation: none !important; }
-/* ensure body text contrast */
-body, .app, .card, .panel { color: var(--text); }
+/* apply accent to buy buttons when an upgrade is active */
+body[class*="upg-"] .buy { box-shadow: 0 8px 30px rgba(0,0,0,.35), 0 0 22px var(--accent, #6cf3ff33); border-color: rgba(255,255,255,0.06); }
