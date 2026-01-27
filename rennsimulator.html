@@ -682,6 +682,11 @@
         <source src="auto.mp4" type="video/mp4">
     </video>
 
+    <!-- BACKGROUND MUSIC -->
+    <audio id="backgroundMusic" loop>
+        <source src="babybell.mp3" type="audio/mpeg">
+    </audio>
+
     <!-- AMBIENT EFFECTS -->
     <div class="ambient-overlay"></div>
     <div class="ambient-particles">
@@ -839,6 +844,12 @@
         // Enable scrolling after intro animation
         setTimeout(() => {
             document.body.classList.add('scroll-enabled');
+        }, 3000);
+
+        // Play background music after intro animation
+        setTimeout(() => {
+            const audio = document.getElementById('backgroundMusic');
+            audio.play().catch(err => console.log('Audio-Autoplay verhindert:', err));
         }, 3000);
 
         // Optional: Add haptic feedback on mobile
