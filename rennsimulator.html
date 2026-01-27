@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏎️ Rennsimulator - Gran Turismo 7</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,10 +13,104 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(180deg, #0f0f1e 0%, #1a1a3e 50%, #0f1629 100%);
+            font-family: 'Inter', 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
             color: white;
             overflow-x: hidden;
+            position: relative;
+        }
+
+        /* VIDEO BACKGROUND */
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: blur(3px);
+            opacity: 0.55;
+            z-index: -1;
+        }
+
+        /* AMBIENT OVERLAY */
+        .ambient-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.85) 0%, rgba(20, 10, 40, 0.7) 50%, rgba(60, 0, 20, 0.75) 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* AMBIENT PARTICLES */
+        .ambient-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(0, 150, 255, 0.3);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        .particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 20%; top: 40%; animation-delay: 2s; }
+        .particle:nth-child(3) { left: 30%; top: 10%; animation-delay: 4s; }
+        .particle:nth-child(4) { left: 60%; top: 60%; animation-delay: 1s; }
+        .particle:nth-child(5) { left: 80%; top: 30%; animation-delay: 3s; }
+        .particle:nth-child(6) { left: 15%; top: 70%; animation-delay: 5s; }
+        .particle:nth-child(7) { left: 70%; top: 20%; animation-delay: 1.5s; }
+        .particle:nth-child(8) { left: 50%; top: 80%; animation-delay: 3.5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 0.5; }
+            50% { transform: translateY(-100px) translateX(50px); opacity: 0.8; }
+            90% { opacity: 0.5; }
+        }
+
+        /* GLOW ELEMENTS */
+        .glow-element {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow-blue {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 150, 255, 0.2) 0%, rgba(0, 150, 255, 0) 70%);
+            top: -100px;
+            right: -100px;
+            animation: pulse-glow 8s ease-in-out infinite;
+        }
+
+        .glow-red {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(255, 40, 100, 0.25) 0%, rgba(255, 40, 100, 0) 70%);
+            bottom: -50px;
+            left: -50px;
+            animation: pulse-glow 10s ease-in-out infinite;
+            animation-delay: 2s;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 0.9; }
         }
 
         /* INTRO ANIMATION */
@@ -25,13 +120,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(180deg, #000 0%, #0f0f1e 100%);
+            background: #000;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
             animation: fadeOutIntro 0.8s ease-out 2.8s forwards;
+            backdrop-filter: blur(5px);
         }
 
         @keyframes fadeOutIntro {
@@ -43,12 +139,19 @@
 
         .intro-content {
             text-align: center;
+            position: relative;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .car-emoji {
             font-size: 100px;
             margin-bottom: 30px;
             animation: carZoom 1.5s ease-out;
+            filter: drop-shadow(0 0 20px rgba(0, 150, 255, 0.6));
         }
 
         @keyframes carZoom {
@@ -70,13 +173,14 @@
             opacity: 0;
             letter-spacing: 2px;
             color: #fff;
+            text-shadow: 0 0 30px rgba(0, 150, 255, 0.5);
         }
 
         .intro-subtext {
             font-size: 16px;
             animation: fadeInDown 1s ease-out 0.6s forwards;
             opacity: 0;
-            color: #00d4ff;
+            color: #0096ff;
             letter-spacing: 3px;
             font-weight: 600;
         }
@@ -88,18 +192,27 @@
             border-radius: 10px;
             margin-top: 40px;
             overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 150, 255, 0.4), inset 0 0 10px rgba(0, 150, 255, 0.2);
+            position: relative;
         }
 
         .loading-progress {
             height: 100%;
-            background: linear-gradient(90deg, #00d4ff, #0099ff);
+            background: linear-gradient(90deg, #0096ff, #ff2860, #0096ff);
+            background-size: 200% 100%;
             border-radius: 10px;
-            animation: loading 2.8s ease-out forwards;
+            animation: loading 2.8s ease-out forwards, shimmer 1.5s ease-in-out infinite;
+            box-shadow: 0 0 15px rgba(0, 150, 255, 0.8), 0 0 30px rgba(255, 40, 96, 0.4);
         }
 
         @keyframes loading {
             0% { width: 0%; }
             100% { width: 100%; }
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% center; }
+            50% { background-position: 100% center; }
         }
 
         @keyframes fadeInDown {
@@ -120,6 +233,7 @@
             flex-direction: column;
             padding: 20px;
             position: relative;
+            z-index: 1;
         }
 
         header {
@@ -135,46 +249,52 @@
             color: #fff;
             letter-spacing: 1px;
             animation: scaleInTitle 0.8s ease-out 2.9s backwards;
+            text-shadow: 0 0 30px rgba(0, 150, 255, 0.4), 0 0 60px rgba(0, 150, 255, 0.2);
         }
 
         .header-subtitle {
             font-size: 16px;
-            color: #00d4ff;
+            color: #0096ff;
             margin-bottom: 15px;
             font-weight: 600;
             letter-spacing: 1px;
             animation: slideDown 0.8s ease-out 3.1s backwards;
+            text-shadow: 0 0 15px rgba(0, 150, 255, 0.3);
         }
 
         .location-box {
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(0, 153, 255, 0.1));
-            border: 2px solid rgba(0, 212, 255, 0.4);
+            background: rgba(0, 20, 40, 0.5);
+            border: 2px solid rgba(0, 150, 255, 0.5);
             border-radius: 15px;
             padding: 20px;
             margin: 20px 0;
             animation: slideUp 0.8s ease-out 3.3s backwards;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 30px rgba(0, 150, 255, 0.2), inset 0 0 20px rgba(0, 150, 255, 0.1);
         }
 
         .location-label {
             font-size: 12px;
-            color: #00d4ff;
+            color: #0096ff;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-weight: 700;
             margin-bottom: 8px;
+            text-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
         }
 
         .location-main {
             font-size: 42px;
             font-weight: 800;
-            color: #00d4ff;
+            color: #0096ff;
             margin-bottom: 5px;
+            text-shadow: 0 0 30px rgba(0, 150, 255, 0.6), 0 0 60px rgba(0, 150, 255, 0.3);
         }
 
         .location-building {
             font-size: 14px;
-            color: #aaa;
+            color: #888;
+            text-shadow: 0 0 10px rgba(0, 150, 255, 0.2);
         }
 
         @keyframes scaleInTitle {
@@ -233,14 +353,15 @@
         }
 
         .feature-card {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 20, 40, 0.4);
+            border: 1.5px solid rgba(0, 150, 255, 0.3);
             border-radius: 12px;
             padding: 20px;
             text-align: center;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px);
             animation: fadeInUp 0.6s ease-out backwards;
             transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 150, 255, 0.1), inset 0 0 15px rgba(0, 150, 255, 0.05);
         }
 
         .feature-card:nth-child(1) { animation-delay: 3s; }
@@ -248,9 +369,10 @@
         .feature-card:nth-child(3) { animation-delay: 3.4s; }
 
         .feature-card:hover {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(0, 212, 255, 0.4);
+            background: rgba(0, 30, 60, 0.5);
+            border-color: rgba(0, 150, 255, 0.6);
             transform: translateY(-5px);
+            box-shadow: 0 0 30px rgba(0, 150, 255, 0.25), inset 0 0 20px rgba(0, 150, 255, 0.1);
         }
 
         @keyframes fadeInUp {
@@ -267,6 +389,7 @@
         .feature-emoji {
             font-size: 40px;
             margin-bottom: 10px;
+            filter: drop-shadow(0 0 10px rgba(0, 150, 255, 0.4));
         }
 
         .feature-title {
@@ -274,17 +397,18 @@
             font-weight: 700;
             color: #fff;
             margin-bottom: 8px;
+            text-shadow: 0 0 15px rgba(0, 150, 255, 0.3);
         }
 
         .feature-text {
             font-size: 13px;
-            color: #bbb;
+            color: #999;
             line-height: 1.5;
         }
 
         /* CTA BUTTON */
         .cta-button {
-            background: linear-gradient(135deg, #0099ff, #00d4ff);
+            background: linear-gradient(135deg, #0096ff, #ff0040);
             color: #fff;
             border: none;
             padding: 22px;
@@ -296,7 +420,7 @@
             margin-top: 30px;
             animation: fadeInUp 0.6s ease-out 3.6s backwards;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.25);
+            box-shadow: 0 0 30px rgba(0, 150, 255, 0.4), 0 0 60px rgba(255, 0, 60, 0.2);
             letter-spacing: 1px;
             text-transform: uppercase;
         }
@@ -307,36 +431,38 @@
 
         .cta-button:hover {
             transform: scale(1.02);
-            box-shadow: 0 12px 35px rgba(0, 212, 255, 0.4);
+            box-shadow: 0 0 40px rgba(0, 150, 255, 0.6), 0 0 80px rgba(255, 0, 60, 0.3);
         }
 
         /* FOOTER */
         footer {
             text-align: center;
             padding: 30px 20px;
-            color: #666;
+            color: #555;
             font-size: 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(0, 150, 255, 0.15);
             animation: fadeIn 0.8s ease-out 3.8s backwards;
         }
 
         .donation-box {
-            background: rgba(0, 212, 255, 0.08);
-            border: 1px solid rgba(0, 212, 255, 0.25);
+            background: rgba(0, 20, 40, 0.4);
+            border: 1.5px solid rgba(0, 150, 255, 0.3);
             border-radius: 12px;
             padding: 18px;
             margin: 30px 0;
             font-size: 14px;
             line-height: 1.7;
             animation: fadeInUp 0.6s ease-out 3.5s backwards;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 20px rgba(0, 150, 255, 0.1), inset 0 0 15px rgba(0, 150, 255, 0.05);
         }
 
         .donation-title {
             font-weight: 700;
-            color: #00d4ff;
+            color: #0096ff;
             margin-bottom: 8px;
             font-size: 15px;
+            text-shadow: 0 0 10px rgba(0, 150, 255, 0.4);
         }
 
         /* MOBILE RESPONSIVE */
@@ -361,12 +487,32 @@
     </style>
 </head>
 <body>
+    <!-- VIDEO BACKGROUND -->
+    <video class="video-background" autoplay muted loop playsinline>
+        <source src="auto.mp4" type="video/mp4">
+    </video>
+
+    <!-- AMBIENT EFFECTS -->
+    <div class="ambient-overlay"></div>
+    <div class="ambient-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+    <div class="glow-element glow-blue"></div>
+    <div class="glow-element glow-red"></div>
+
     <!-- INTRO ANIMATION -->
     <div class="intro-screen">
         <div class="intro-content">
             <div class="car-emoji">🏎️</div>
             <h1 class="intro-text">RENNSIMULATOR 2026</h1>
-            <p class="intro-subtext">Starten in 3...2...1...</p>
+            <p class="intro-subtext"></p>
             <div class="loading-bar">
                 <div class="loading-progress"></div>
             </div>
@@ -397,7 +543,7 @@
                 </div>
 
                 <div class="feature-card">
-                    <div class="feature-emoji">�</div>
+                    <div class="feature-emoji">🔥</div>
                     <div class="feature-title">ECHTE RENNSTRECKEN</div>
                     <div class="feature-text">
                         Fahre auf den weltbesten Rennstrecken
