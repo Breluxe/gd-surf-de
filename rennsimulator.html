@@ -637,6 +637,25 @@
             font-size: 13px;
         }
 
+        /* CREDITS */
+        .credits {
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #555;
+            z-index: 100;
+            animation: fadeIn 0.8s ease-out 3.8s backwards;
+        }
+
+        .credits span {
+            color: #0096ff;
+            font-weight: 600;
+            text-shadow: 0 0 8px rgba(0, 150, 255, 0.3);
+        }
+
         @media (max-width: 600px) {
             .header-title {
                 font-size: 36px;
@@ -755,6 +774,11 @@
         <footer>
             <p>Bolivienbasar 2026 | Fundraiser für den Bolivienbasar</p>
         </footer>
+    </div>
+
+    <!-- CREDITS -->
+    <div class="credits">
+        Hosted by <span>Gabriel</span>, <span>Anton</span>, <span>Kjell</span> und <span>Maximilian</span>
     </div>
 
     <script>
